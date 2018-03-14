@@ -12,6 +12,7 @@ from Crypto.Hash import SHA256
 from Crypto import Random
 import requests
 import os
+import ast
 #from flask.ext.sqlalchemy import SQLAlchemy
 app = Flask(__name__)
 

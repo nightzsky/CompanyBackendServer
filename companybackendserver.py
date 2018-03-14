@@ -179,12 +179,12 @@ def aes_encrypt(data,key):
 #function which decrypts data using AES
 def aes_decrypt(data,key):
     if type(data) != bytes:
-        try:
-            print(data)
-            data = bytes(ast.literal_eval(data))
-        except:
-            print("Error: could not interpret data for decryption")
-            return
+      #  try:
+      print(data)
+      data = bytes(ast.literal_eval(data))
+     #   except:
+    #        print("Error: could not interpret data for decryption")
+            
     iv = data[:16]
     cipher = AES.new(key, AES.MODE_CFB, iv)
     decrypted = cipher.decrypt(data[16:]).decode()

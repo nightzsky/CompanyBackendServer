@@ -55,7 +55,7 @@ def return_pub_key():
     #delete file after this to prevent key from being stored as a file
     os.remove("privateKey.pem")
     organization["private_key"] = RSA_pvt_key_str
-    return organization
+    return jsonify(organization)
 
 @app.route("/display")
 def display():

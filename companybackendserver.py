@@ -79,11 +79,13 @@ def getDatabase():
 @app.route("/register_user", methods = ['POST'])
 def register_user():
     new_user = {}
-    request_id = "111"
-    key_pair = request_id_database[request_id]
-    print(key_pair)
-    private_key_for_decryption = RSA.import_key(key_pair["private_key"])
-    public_key = RSA.import_key(key_pair["public_key"])
+    request_id = "112"
+#    key_pair = request_id_database[request_id]
+#    print(key_pair)
+#    private_key_for_decryption = RSA.import_key(key_pair["private_key"])
+#    public_key = RSA.import_key(key_pair["public_key"])
+    RSA_pvt_key = RSA.generate(2048)
+    RSA_pub_key = RSA_pvt_key.publickey()
     
 #    private_key_for_decryption = request_id_database[request_id]["private_key"]
 #    public_key = request_id_database[request_id]["public_key"]
@@ -96,16 +98,16 @@ def register_user():
     
     print(new_user)
     
-    new_user["username"] = rsa_encrypt(new_user["username"],public_key)
+    new_user["username"] = rsa_encrypt(new_user["username"],RSA_pub_key)
     for key in new_user["token"]:
-        new_user["token"][key] = rsa_encrypt(new_user["token"][key],public_key)
+        new_user["token"][key] = rsa_encrypt(new_user["token"][key],RSA_pub_key)
     print("------------------------------Received Encrypted Info---------------------------------")
     print(new_user)
     print("-----------------------------------------End------------------------------------------")
     
-    new_user["username"] = rsa_decrypt(new_user["username"],private_key_for_decryption)
+    new_user["username"] = rsa_decrypt(new_user["username"],RSA_pvt_key)
     for key in new_user["token"]:
-        new_user["token"][key] = rsa_decrypt(new_user["token"][key], private_key_for_decryption)
+        new_user["token"][key] = rsa_decrypt(new_user["token"][key], RSA_pvt_key)
     print("------------------------------------Start Decrypting Info Received-------------------------------------")
     print(new_user)
     print("----------------------------------------------End Of Decryption----------------------------------------")

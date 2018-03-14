@@ -29,7 +29,7 @@ def hello():
 
 @app.route("/get_key",methods = ['GET'])
 def return_pub_key():
-    organization["request_id"] = 111
+    request_id= 111
     print(organization)
     RSA_pvt_key = RSA.generate(2048)
     RSA_pub_key = RSA_pvt_key.publickey()
@@ -43,8 +43,8 @@ def return_pub_key():
     #delete file after this to prevent key from being stored as a file
     os.remove("publicKey.pem")
     print("Storing RSA public key in company info")
-    organization["public_key"] = RSA_pub_key_str.decode("utf-8")
-    
+#    organization["public_key"] = RSA_pub_key_str.decode("utf-8")
+    public_key = RSA_pub_key_str.decode("utf-8")
     #store private key, AES key, and user's block id in the token
     #first get private key as plaintext
     f = open("privateKey.pem", "a+b")
@@ -55,13 +55,13 @@ def return_pub_key():
     f.close()
     #delete file after this to prevent key from being stored as a file
     os.remove("privateKey.pem")
-    organization["private_key"] = RSA_pvt_key_str.decode("utf-8")
+    private_key = RSA_pvt_key_str.decode("utf-8")
     
     for_user = {}
-    for_user["request_id"] = organization["request_id"]
-    for_user["public_key"] = organization["public_key"]
+    for_user["request_id"] = request_id
+    for_user["public_key"] = public_key
     
-    database["new"] = for_user
+    database[request_id] = private_key
     print(type(RSA_pvt_key_str))
     print(organization)
     
@@ -74,6 +74,7 @@ def display():
 @app.route("/register_user", methods = ['POST'])
 def register_user():
     new_user = {}
+    new_user["request_id"] = database["new"]
     new_user["username"] = rsa_decrypt(request.json["username"],organization["private_key"])
     new_user["password"] = rsa_decrypt(request.json["password"],organization["private_key"])
     new_user["token"] = rsa_decrypt(request.json["token"],organization["private_key"])

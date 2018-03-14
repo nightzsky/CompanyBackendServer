@@ -30,7 +30,7 @@ def hello():
 @app.route("/get_key",methods = ['GET'])
 def return_pub_key():
     organization["request_id"] = 111
-    print(origanization)
+    print(organization)
     RSA_pvt_key = RSA.generate(2048)
     RSA_pub_key = RSA_pvt_key.publickey()
     #write key to the file then read the same file to obtain the key in plaintext

@@ -172,7 +172,9 @@ def aes_encrypt(data,key):
 def aes_decrypt(data,key):
 	if type(data) != bytes:
 		try:
+            print(data)
 			data = bytes(ast.literal_eval(data))
+            
 		except:
 			print("Error: could not interpret data for decryption")
 			return

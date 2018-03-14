@@ -126,7 +126,7 @@ def register_user():
     print("--------------------------------------------------Response Received---------------------------------------------")
     print(r.status_code)
     print(r.text) 
-    user_encrypted_data = r.json
+    user_encrypted_data = r.text
     print(user_encrypted_data)
     
     print("-----------------------------------------------------Start Decrypting-------------------------------------------")

@@ -29,6 +29,7 @@ def hello():
 
 @app.route("/get_key",methods = ['GET'])
 def return_pub_key():
+    organization["request_id"] = 111
     RSA_pvt_key = RSA.generate(2048)
     RSA_pub_key = RSA_pvt_key.publickey()
     #write key to the file then read the same file to obtain the key in plaintext
@@ -54,7 +55,7 @@ def return_pub_key():
     #delete file after this to prevent key from being stored as a file
     os.remove("privateKey.pem")
     organization["private_key"] = RSA_pvt_key_str
-    return organization["public_key"]
+    return organization
 
 @app.route("/display")
 def display():

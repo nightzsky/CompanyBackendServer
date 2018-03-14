@@ -16,7 +16,6 @@ import os
 app = Flask(__name__)
 
 database = {"hi":"bye"}
-organization = {}
 
 
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://local'
@@ -30,7 +29,6 @@ def hello():
 @app.route("/get_key",methods = ['GET'])
 def return_pub_key():
     request_id= str(111)
-    print(organization)
     RSA_pvt_key = RSA.generate(2048)
     RSA_pub_key = RSA_pvt_key.publickey()
     #write key to the file then read the same file to obtain the key in plaintext
@@ -63,7 +61,7 @@ def return_pub_key():
     
     database[request_id] = private_key
     print(type(RSA_pvt_key_str))
-    print(organization)
+
     
     return jsonify(for_user)
 
@@ -73,7 +71,9 @@ def display():
 
 @app.route("/getDatabase",methods = ['GET'])
 def getDatabase():
-    return jsonify(database)
+    resp = jsonify(database)
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    return resp
 
 @app.route("/register_user", methods = ['POST'])
 def register_user():
@@ -81,10 +81,10 @@ def register_user():
     request_id = request.json["request_id"]
     private_key_for_decryption = database[request_id]
 #    new_user["username"] = rsa_decrypt(request.json["username"],private_key_for_decryption)
-#    new_user["password"] = rsa_decrypt(request.json["password"],private_key_for_decryption)
+
 #    new_user["token"] = rsa_decrypt(request.json["token"],private_key_for_decryption)
     new_user["username"] = request.json["username"]
-    new_user["password"] = request.json["password"]
+
     new_user["token"] = request.json["token"]
     
     user_AES_key = new_user["token"]["AES_key"]

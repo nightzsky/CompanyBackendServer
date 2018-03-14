@@ -113,7 +113,7 @@ def register_user():
     print(new_user)
     print("----------------------------------------------End Of Decryption----------------------------------------")
     
-    user_AES_key = list(b(new_user["token"]["AES_key"])
+    user_AES_key = list(b(new_user["token"]["AES_key"]))
     user_block_id = new_user["token"]["block_id"]
     
 #    print("user_AES_key:" %user_AES_key)

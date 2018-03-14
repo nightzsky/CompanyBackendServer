@@ -43,7 +43,7 @@ def return_pub_key():
     #delete file after this to prevent key from being stored as a file
     os.remove("publicKey.pem")
     print("Storing RSA public key in company info")
-    organization["public_key"] = RSA_pub_key_str
+    organization["public_key"] = RSA_pub_key_str.decode("utf-8")
     
     #store private key, AES key, and user's block id in the token
     #first get private key as plaintext
@@ -55,7 +55,7 @@ def return_pub_key():
     f.close()
     #delete file after this to prevent key from being stored as a file
     os.remove("privateKey.pem")
-    organization["private_key"] = RSA_pvt_key_str
+    organization["private_key"] = RSA_pvt_key_str.decode("utf-8")
     
     for_user = {}
     for_user["request_id"] = organization["request_id"]

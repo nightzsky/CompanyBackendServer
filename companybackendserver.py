@@ -60,8 +60,9 @@ def return_pub_key():
     for_user["request_id"] = request_id
     for_user["public_key"] = public_key
     
-    request_id_database[request_id]["private_key"] = private_key
-    request_id_database[request_id]["public_key"] = public_key
+    request_id_database[request_id]={"private_key":private_key,"public_key":public_key}
+#    request_id_database[request_id]["private_key"] = private_key
+#    request_id_database[request_id]["public_key"] = public_key
     
     return jsonify(for_user)
 

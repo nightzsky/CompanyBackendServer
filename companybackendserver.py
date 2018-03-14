@@ -80,8 +80,11 @@ def getDatabase():
 def register_user():
     new_user = {}
     request_id = request.json["request_id"]
-    private_key_for_decryption = request_id_database[request_id]["private_key"]
-    public_key = request_id_database[request_id]["public_key"]
+    key_pair = request_id_database[request_id]
+    private_key_for_decryption = key_pair["private_key"]
+    public_key = key_pair["public_key"]
+#    private_key_for_decryption = request_id_database[request_id]["private_key"]
+#    public_key = request_id_database[request_id]["public_key"]
     
 #    new_user["username"] = rsa_decrypt(request.json["username"],private_key_for_decryption)
 

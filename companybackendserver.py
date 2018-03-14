@@ -11,6 +11,7 @@ from Crypto.PublicKey import RSA
 from Crypto.Hash import SHA256
 from Crypto import Random
 import requests
+import os
 #from flask.ext.sqlalchemy import SQLAlchemy
 
 organization = {}

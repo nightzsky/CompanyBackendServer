@@ -71,33 +71,47 @@ def return_pub_key():
 def display():
     return jsonify(database)
 
+@app.route("/getDatabase",methods = ['GET'])
+def getDatabase():
+    return jsonify(database)
+
 @app.route("/register_user", methods = ['POST'])
 def register_user():
     new_user = {}
-    new_user["request_id"] = request.json["request_id"]
-    new_user["username"] = rsa_decrypt(request.json["username"],organization["private_key"])
-    new_user["password"] = rsa_decrypt(request.json["password"],organization["private_key"])
-    new_user["token"] = rsa_decrypt(request.json["token"],organization["private_key"])
+    request_id = request.json["request_id"]
+    private_key_for_decryption = database[request_id]
+#    new_user["username"] = rsa_decrypt(request.json["username"],private_key_for_decryption)
+#    new_user["password"] = rsa_decrypt(request.json["password"],private_key_for_decryption)
+#    new_user["token"] = rsa_decrypt(request.json["token"],private_key_for_decryption)
+    new_user["username"] = request.json["username"]
+    new_user["password"] = request.json["password"]
+    new_user["token"] = request.json["token"]
     
     user_AES_key = new_user["token"]["AES_key"]
     user_block_id = new_user["token"]["block_id"]
+    
+    print(user_AES_key)
+    print(user_block_id)
     
     r = requests.post("https://kyc-project.herokuapp.com/register_org", json = {"block_id":user_block_id})
     print(r.status_code)
     print(r.text)
     
     user_encrypted_data = r.json
-    print("user_encrypted_data")
     print(user_encrypted_data)
-    print("===========================================================")
+#    print("user_encrypted_data")
+#    print(user_encrypted_data)
+#    print("===========================================================")
     
-    user_decrypted_data = {}
-    for key in user_encrypted_data:
-        user_decrypted_data[key] = aes_decrypt(user_encrypted_data[key], user_AES_key)
-        
-    print(user_decrypted_data)
+#    user_decrypted_data = {}
+#    for key in user_encrypted_data:
+#        user_decrypted_data[key] = aes_decrypt(user_encrypted_data[key], user_AES_key)
+#        
+#    print(user_decrypted_data)
+#    
+#    database[new_user["username"]] = user_decrypted_data
     
-    database[new_user["username"]] = user_decrypted_data
+    
     
     return "Done"
     

@@ -79,7 +79,7 @@ def getDatabase():
 @app.route("/register_user", methods = ['POST'])
 def register_user():
     new_user = {}
-    request_id = request.json["request_id"]
+    request_id = "111"
     key_pair = request_id_database[request_id]
     private_key_for_decryption = RSA_import_key(key_pair["private_key"])
     public_key = RSA.import_key(key_pair["public_key"])

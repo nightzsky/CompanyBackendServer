@@ -113,7 +113,8 @@ def register_user():
     print(new_user)
     print("----------------------------------------------End Of Decryption----------------------------------------")
     
-    user_AES_key = list(b(new_user["token"]["AES_key"]))
+    AES_key = new_user["token"]["AES_key"]
+    user_AES_key = bytes(ast.literal_eval(AES_key))
     user_block_id = new_user["token"]["block_id"]
     
 #    print("user_AES_key:" %user_AES_key)
@@ -127,6 +128,12 @@ def register_user():
     print(r.text) 
     user_encrypted_data = r.json
     print(user_encrypted_data)
+    
+    print("-----------------------------------------------------Start Decrypting-------------------------------------------")
+    user_decrypted_data = aes_decrypt(user_encrypted_data,user_AES_key)
+    print(user_decrypted_data)
+    print("-----------------------------------------------------------------Done--------------------------------------------")
+    
     
 #    print("user_encrypted_data")
 #    print(user_encrypted_data)

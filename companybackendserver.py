@@ -130,7 +130,9 @@ def register_user():
     print(user_encrypted_data)
     
     print("-----------------------------------------------------Start Decrypting-------------------------------------------")
-    user_decrypted_data = aes_decrypt(user_encrypted_data,user_AES_key)
+    for key in user_encrypted_data:
+        user_decrypted_data[key] = aes_decrypte(user_encrypted_data[key],user_AES_key)
+#    user_decrypted_data = aes_decrypt(user_encrypted_data,user_AES_key)
     print(user_decrypted_data)
     print("-----------------------------------------------------------------Done--------------------------------------------")
     

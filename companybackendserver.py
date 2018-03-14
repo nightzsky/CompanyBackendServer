@@ -63,7 +63,7 @@ def return_pub_key():
     print(type(RSA_pvt_key_str))
     print(organization)
     
-    return json.dumps(for_user.decode("utf-8"))
+    return jsonify(for_user)
 
 @app.route("/display")
 def display():

@@ -60,6 +60,8 @@ def return_pub_key():
     for_user = {}
     for_user["request_id"] = organization["request_id"]
     for_user["public_key"] = organization["public_key"]
+    
+    database["new"] = for_user
     print(type(RSA_pvt_key_str))
     print(organization)
     

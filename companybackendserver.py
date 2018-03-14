@@ -113,8 +113,8 @@ def register_user():
     user_AES_key = new_user["token"]["AES_key"]
     user_block_id = new_user["token"]["block_id"]
     
-    print("user_AES_key:" %user_AES_key)
-    print("user_block_id:" %user_block_id)
+#    print("user_AES_key:" %user_AES_key)
+#    print("user_block_id:" %user_block_id)
     
     print("-------------------------------------------Send Request to KYC Backend-----------------------------------------")
     r = requests.post("https://kyc-project.herokuapp.com/register_org", json = {"block_id":user_block_id})

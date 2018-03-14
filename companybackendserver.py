@@ -13,38 +13,12 @@ from Crypto import Random
 import requests
 import os
 #from flask.ext.sqlalchemy import SQLAlchemy
-
-organization = {}
-organization["name"] = "ABC"
-
-RSA_pvt_key = RSA.generate(2048)
-RSA_pub_key = RSA_pvt_key.publickey()
-#write key to the file then read the same file to obtain the key in plaintext
-f = open("publicKey.pem", "a+b")
-f.write(RSA_pub_key.exportKey('PEM'))
-f.seek(0)
-RSA_pub_key_str = f.read()
-print("Generating RSA public key: %s"%RSA_pub_key_str)
-f.close()
-#delete file after this to prevent key from being stored as a file
-os.remove("publicKey.pem")
-print("Storing RSA public key in company info")
-organization["public_key"] = RSA_pub_key_str
-
-#store private key, AES key, and user's block id in the token
-#first get private key as plaintext
-f = open("privateKey.pem", "a+b")
-f.write(RSA_pvt_key.exportKey('PEM'))
-f.seek(0)
-RSA_pvt_key_str = f.read()
-print("Generating RSA private key: %s"%RSA_pvt_key_str)
-f.close()
-#delete file after this to prevent key from being stored as a file
-os.remove("privateKey.pem")
-organization["private_key"] = RSA_pvt_key_str
-database = {"hi":"bye"}
-
 app = Flask(__name__)
+
+database = {"hi":"bye"}
+organization = {}
+
+
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://local'
 
 #db = SQLAlchemy()
@@ -55,6 +29,31 @@ def hello():
 
 @app.route("/get_key",methods = ['GET'])
 def return_pub_key():
+    RSA_pvt_key = RSA.generate(2048)
+    RSA_pub_key = RSA_pvt_key.publickey()
+    #write key to the file then read the same file to obtain the key in plaintext
+    f = open("publicKey.pem", "a+b")
+    f.write(RSA_pub_key.exportKey('PEM'))
+    f.seek(0)
+    RSA_pub_key_str = f.read()
+    print("Generating RSA public key: %s"%RSA_pub_key_str)
+    f.close()
+    #delete file after this to prevent key from being stored as a file
+    os.remove("publicKey.pem")
+    print("Storing RSA public key in company info")
+    organization["public_key"] = RSA_pub_key_str
+    
+    #store private key, AES key, and user's block id in the token
+    #first get private key as plaintext
+    f = open("privateKey.pem", "a+b")
+    f.write(RSA_pvt_key.exportKey('PEM'))
+    f.seek(0)
+    RSA_pvt_key_str = f.read()
+    print("Generating RSA private key: %s"%RSA_pvt_key_str)
+    f.close()
+    #delete file after this to prevent key from being stored as a file
+    os.remove("privateKey.pem")
+    organization["private_key"] = RSA_pvt_key_str
     return organization["public_key"]
 
 @app.route("/display")
@@ -134,6 +133,8 @@ def rsa_decrypt(data, private_key):
 	session_key = cipher.decrypt(data[1])
 	#then decrypt the data using AES and the session key
 	return aes_decrypt(data[0], session_key)
-    
+
+if __name__ == "__main__":
+    app.run()
     
     

@@ -15,7 +15,8 @@ import os
 #from flask.ext.sqlalchemy import SQLAlchemy
 app = Flask(__name__)
 
-database = {"hi":"bye"}
+request_id_database = {"request_id":{"private_key":"private_key_to_decrpyt_info_sent_by_this_request_id","public_key":"public_key"}}
+registered_user_database = {"username":"data_extracted_from_kyc"}
 
 
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://local'
@@ -59,19 +60,18 @@ def return_pub_key():
     for_user["request_id"] = request_id
     for_user["public_key"] = public_key
     
-    database[request_id] = private_key
-    print(type(RSA_pvt_key_str))
-
+    request_id_database[request_id]["private_key"] = private_key
+    request_id_database[request_id]["public_key"] = public_key
     
     return jsonify(for_user)
 
 @app.route("/display")
 def display():
-    return jsonify(database)
+    return jsonify(registered_user_database)
 
 @app.route("/getDatabase",methods = ['GET'])
 def getDatabase():
-    resp = jsonify(database)
+    resp = jsonify(request_id_database)
     resp.headers['Access-Control-Allow-Origin'] = '*'
     return resp
 
@@ -79,26 +79,44 @@ def getDatabase():
 def register_user():
     new_user = {}
     request_id = request.json["request_id"]
-    private_key_for_decryption = database[request_id]
+    private_key_for_decryption = request_id_database[request_id]["private_key"]
+    public_key = request_id_database[request_id]["public_key"]
+    
 #    new_user["username"] = rsa_decrypt(request.json["username"],private_key_for_decryption)
 
 #    new_user["token"] = rsa_decrypt(request.json["token"],private_key_for_decryption)
     new_user["username"] = request.json["username"]
-
     new_user["token"] = request.json["token"]
+    
+    new_user["username"] = rsa_encrypt(new_user["username"],public_key)
+    for key in new_user["token"]:
+        new_user["token"][key] = rsa_encrypt(new_user["token"][key],public_key)
+    print("------------------------------Received Encrypted Info---------------------------------")
+    print(new_user)
+    print("-----------------------------------------End------------------------------------------")
+    
+    new_user["username"] = rsa_decrypt(new_user["username"],private_key_for_decryption)
+    for key in new_user["token"]:
+        new_user["token"][key] = rsa_decrypt(new_user["token"][key], private_key_for_decryption)
+    print("------------------------------------Start Decrypting Info Received-------------------------------------")
+    print(new_user)
+    print("----------------------------------------------End Of Decryption----------------------------------------")
     
     user_AES_key = new_user["token"]["AES_key"]
     user_block_id = new_user["token"]["block_id"]
     
-    print(user_AES_key)
-    print(user_block_id)
+    print("user_AES_key:" %user_AES_key)
+    print("user_block_id:" %user_block_id)
     
+    print("-------------------------------------------Send Request to KYC Backend-----------------------------------------")
     r = requests.post("https://kyc-project.herokuapp.com/register_org", json = {"block_id":user_block_id})
+
+    print("--------------------------------------------------Response Received---------------------------------------------")
     print(r.status_code)
-    print(r.text)
-    
+    print(r.text) 
     user_encrypted_data = r.json
     print(user_encrypted_data)
+    
 #    print("user_encrypted_data")
 #    print(user_encrypted_data)
 #    print("===========================================================")
@@ -111,9 +129,25 @@ def register_user():
 #    
 #    database[new_user["username"]] = user_decrypted_data
     
+    registered_user_database["username"] = user_encrypted_data
+    
     
     
     return "Done"
+
+@app.route("/login_org",methods = ['POST'])
+def login_org():
+    request_id = request.json["request_id"]
+    username = request.json["username"]
+    if username in registered_user_database.keys():
+        resp = Response(json.dumps({"status":"success"}))
+        resp.status_code = 200
+    else:
+        resp = Response(json.dumps({"status":"fail"}))
+        resp.status_code = 200
+    print(resp)
+    
+    return resp
     
 #function which encrypts data using AES
 def aes_encrypt(data,key):

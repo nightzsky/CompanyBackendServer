@@ -81,8 +81,9 @@ def register_user():
     new_user = {}
     request_id = request.json["request_id"]
     key_pair = request_id_database[request_id]
-    private_key_for_decryption = key_pair["private_key"]
-    public_key = key_pair["public_key"]
+    private_key_for_decryption = RSA_import_key(key_pair["private_key"])
+    public_key = RSA.import_key(key_pair["public_key"])
+    
 #    private_key_for_decryption = request_id_database[request_id]["private_key"]
 #    public_key = request_id_database[request_id]["public_key"]
     
@@ -91,6 +92,8 @@ def register_user():
 #    new_user["token"] = rsa_decrypt(request.json["token"],private_key_for_decryption)
     new_user["username"] = request.json["username"]
     new_user["token"] = request.json["token"]
+    
+    print(new_user)
     
     new_user["username"] = rsa_encrypt(new_user["username"],public_key)
     for key in new_user["token"]:

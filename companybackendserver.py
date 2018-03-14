@@ -81,7 +81,7 @@ def register_user():
     new_user = {}
     request_id = "111"
     key_pair = request_id_database[request_id]
-    private_key_for_decryption = RSA_import_key(key_pair["private_key"])
+    private_key_for_decryption = RSA.import_key(key_pair["private_key"])
     public_key = RSA.import_key(key_pair["public_key"])
     
 #    private_key_for_decryption = request_id_database[request_id]["private_key"]

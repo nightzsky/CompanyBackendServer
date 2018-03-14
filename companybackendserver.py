@@ -115,6 +115,8 @@ def register_user():
     
     AES_key = new_user["token"]["AES_key"]
     user_AES_key = bytes(ast.literal_eval(AES_key))
+    print("AES_key")
+    print(user_AES_key)
     user_block_id = new_user["token"]["block_id"]
     
 #    print("user_AES_key:" %user_AES_key)

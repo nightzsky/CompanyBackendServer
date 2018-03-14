@@ -57,6 +57,7 @@ def return_pub_key():
     os.remove("privateKey.pem")
     organization["private_key"] = RSA_pvt_key_str
     
+    for_user = {}
     for_user["request_id"] = organization["request_id"]
     for_user["public_key"] = organization["public_key"]
     print(type(RSA_pvt_key_str))

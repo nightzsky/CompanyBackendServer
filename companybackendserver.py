@@ -29,7 +29,7 @@ def hello():
 
 @app.route("/get_key",methods = ['GET'])
 def return_pub_key():
-    request_id= 111
+    request_id= str(111)
     print(organization)
     RSA_pvt_key = RSA.generate(2048)
     RSA_pub_key = RSA_pvt_key.publickey()
@@ -74,7 +74,7 @@ def display():
 @app.route("/register_user", methods = ['POST'])
 def register_user():
     new_user = {}
-    new_user["request_id"] = database["new"]
+    new_user["request_id"] request.json["request_id"]
     new_user["username"] = rsa_decrypt(request.json["username"],organization["private_key"])
     new_user["password"] = rsa_decrypt(request.json["password"],organization["private_key"])
     new_user["token"] = rsa_decrypt(request.json["token"],organization["private_key"])

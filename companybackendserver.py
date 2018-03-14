@@ -74,7 +74,7 @@ def display():
 @app.route("/register_user", methods = ['POST'])
 def register_user():
     new_user = {}
-    new_user["request_id"] request.json["request_id"]
+    new_user["request_id"] = request.json["request_id"]
     new_user["username"] = rsa_decrypt(request.json["username"],organization["private_key"])
     new_user["password"] = rsa_decrypt(request.json["password"],organization["private_key"])
     new_user["token"] = rsa_decrypt(request.json["token"],organization["private_key"])

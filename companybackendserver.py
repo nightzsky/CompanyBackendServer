@@ -129,10 +129,11 @@ def register_user():
     print(r.status_code)
     print(r.text) 
     user_encrypted_data = ast.literal_eval(r.text)
+    user_encrypted_data = user_encrypted_data["userData"]
     print(user_encrypted_data)
     
     print("-----------------------------------------------------Start Decrypting-------------------------------------------")
-    for key in user_encrypted_data["userData"]:
+    for key in user_encrypted_data:
         user_decrypted_data[key] = aes_decrypt(user_encrypted_data[key],user_AES_key)
 #    user_decrypted_data = aes_decrypt(user_encrypted_data,user_AES_key)
     print(user_decrypted_data)

@@ -129,6 +129,7 @@ def register_user():
     print(r.status_code)
     print(r.text) 
     user_encrypted_data = ast.literal_eval(r.text)
+    print(user_encrypted_data)
     user_encrypted_data = user_encrypted_data["userData"]
     print(user_encrypted_data)
     

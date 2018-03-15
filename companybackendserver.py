@@ -154,7 +154,7 @@ def register_user():
 #    
 #    database[new_user["username"]] = user_decrypted_data
     
-    registered_user_database["username"] = user_encrypted_data
+    registered_user_database[new_user["user_name"]] = user_decrypted_data
     
     
     

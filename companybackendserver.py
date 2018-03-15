@@ -130,6 +130,7 @@ def register_user():
     print(r.status_code)
     print(r.text) 
     user_encrypted_data = json.loads(r.text)
+    user_encrypted_data = ast.literal_eval(user_encrypted_data)
     print(type(user_encrypted_data))
     print(user_encrypted_data)
     user_encrypted_data = user_encrypted_data["userData"]

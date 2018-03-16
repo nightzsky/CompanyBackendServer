@@ -92,8 +92,14 @@ def display():
 
 @app.route("/get_database",methods = ['GET'])
 def get_database():
+
+    """
+    company calls this method. 
+    """
+
     resp = jsonify(request_id_database)
     resp.headers['Access-Control-Allow-Origin'] = '*'
+    print(resp)
     return resp
 
 @app.route("/register_user", methods = ['POST'])

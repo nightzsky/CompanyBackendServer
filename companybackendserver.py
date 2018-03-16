@@ -19,7 +19,7 @@ app = Flask(__name__)
 
 request_id_database = {}
 registered_user_database = {}
-key_request_id = 0
+key_request_id = 1000000
 
 
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://local'

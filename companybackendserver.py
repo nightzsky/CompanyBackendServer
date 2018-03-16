@@ -41,6 +41,7 @@ def get_key():
     only the public_key.
     """
 
+    global key_request_id 
     key_request_id += 1
 
     RSA_pvt_key = RSA.generate(2048)

@@ -17,8 +17,9 @@ import ast
 #from flask.ext.sqlalchemy import SQLAlchemy
 app = Flask(__name__)
 
-request_id_database = {"request_id":{"private_key":"private_key_to_decrpyt_info_sent_by_this_request_id","public_key":"public_key"}}
-registered_user_database = {"username":"data_extracted_from_kyc"}
+request_id_database = {}
+registered_user_database = {}
+key_request_id = 0
 
 
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://local'
@@ -29,11 +30,22 @@ registered_user_database = {"username":"data_extracted_from_kyc"}
 def hello():
     return "Hello"
 
+
+
 @app.route("/get_key",methods = ['GET'])
-def return_pub_key():
-    request_id= "111"
+def get_key():
+
+    """
+    generates a new public-private key pair with a unique request_id,
+    then returns a json string containing the request_id and 
+    only the public_key.
+    """
+
+    key_request_id += 1
+
     RSA_pvt_key = RSA.generate(2048)
     RSA_pub_key = RSA_pvt_key.publickey()
+
     #write key to the file then read the same file to obtain the key in plaintext
     f = open("publicKey.pem", "a+b")
     f.write(RSA_pub_key.exportKey('PEM'))
@@ -41,12 +53,17 @@ def return_pub_key():
     RSA_pub_key_str = f.read()
     print("Generating RSA public key: %s"%RSA_pub_key_str)
     f.close()
+
     #delete file after this to prevent key from being stored as a file
     os.remove("publicKey.pem")
+
     print("Storing RSA public key in company info")
-#    organization["public_key"] = RSA_pub_key_str.decode("utf-8")
+
+    #organization["public_key"] = RSA_pub_key_str.decode("utf-8")
     public_key = RSA_pub_key_str.decode("utf-8")
-    #store private key, AES key, and user's block id in the token
+
+    #store private key, AES key, and user's hashed_id in the token
+
     #first get private key as plaintext
     f = open("privateKey.pem", "a+b")
     f.write(RSA_pvt_key.exportKey('PEM'))
@@ -54,17 +71,17 @@ def return_pub_key():
     RSA_pvt_key_str = f.read()
     print("Generating RSA private key: %s"%RSA_pvt_key_str)
     f.close()
+
     #delete file after this to prevent key from being stored as a file
     os.remove("privateKey.pem")
+
     private_key = RSA_pvt_key_str.decode("utf-8")
     
     for_user = {}
-    for_user["request_id"] = request_id
+    for_user["key_request_id"] = key_request_id
     for_user["public_key"] = public_key
     
-    request_id_database[request_id]={"private_key":private_key,"public_key":public_key}
-#    request_id_database[request_id]["private_key"] = private_key
-#    request_id_database[request_id]["public_key"] = public_key
+    request_id_database[key_request_id]={"private_key":private_key,"public_key":public_key}
     
     return jsonify(for_user)
 
@@ -72,8 +89,8 @@ def return_pub_key():
 def display():
     return jsonify(registered_user_database)
 
-@app.route("/getDatabase",methods = ['GET'])
-def getDatabase():
+@app.route("/get_database",methods = ['GET'])
+def get_database():
     resp = jsonify(request_id_database)
     resp.headers['Access-Control-Allow-Origin'] = '*'
     return resp

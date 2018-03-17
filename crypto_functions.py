@@ -75,3 +75,9 @@ def merkle(data):
         temp.append(merkle(data[i:i+2]))
 
     return merkle(temp)
+
+#converts an int array of java bytes to an int array of python bytes
+def java_to_python_bytes(arr):
+    for i in range(len(arr)):
+        arr[i] = arr[i]%256
+    return arr

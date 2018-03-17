@@ -106,10 +106,13 @@ def get_database():
     company calls this method. 
     """
 
+    # pass the counter to the caller to check for a full response on the client side
+    num_requests = len(request_id_database)
+
     resp = jsonify(request_id_database)
     resp.headers['Access-Control-Allow-Origin'] = '*'
     print(resp)
-    return resp
+    return (num_requests, resp)
 
 @app.route("/register_user", methods = ['POST'])
 def register_user():

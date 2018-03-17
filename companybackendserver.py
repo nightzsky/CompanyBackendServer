@@ -21,6 +21,7 @@ app = Flask(__name__)
 
 request_id_database = {}
 registered_user_database = {}
+num_requests = 0
 key_request_id = 1000000
 
 
@@ -92,12 +93,22 @@ def get_key():
     for_user["public_key"] = public_key
     
     request_id_database[key_request_id]={"private_key":private_key,"public_key":public_key}
+
+    # update database size
+    global num_requests
+    num_requests = len(request_id_database)
     
     return jsonify(for_user)
 
 @app.route("/display")
 def display():
     return jsonify(registered_user_database)
+
+@app.route("/get_database_size", methods = ['GET'])
+def get_database_size():
+    global num_requests
+    num_requests = len(request_id_database)
+    return num_requests
 
 @app.route("/get_database",methods = ['GET'])
 def get_database():
@@ -112,7 +123,7 @@ def get_database():
     resp = jsonify(request_id_database)
     resp.headers['Access-Control-Allow-Origin'] = '*'
     print(resp)
-    return (num_requests, resp)
+    return resp
 
 @app.route("/register_user", methods = ['POST'])
 def register_user():

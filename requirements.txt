@@ -1,4 +1,4 @@
-requests==2.14.2
+requests==2.18.4
+psycopg2==2.7.3.2
+pycrypto==2.6.1
 Flask==0.12.2
-pycryptodome==3.5.1
-gunicorn==19.7.1

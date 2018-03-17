@@ -14,6 +14,8 @@ import requests
 import os
 import json
 import ast
+import psycopg2
+from crypto_functions import *
 #from flask.ext.sqlalchemy import SQLAlchemy
 app = Flask(__name__)
 
@@ -26,10 +28,28 @@ key_request_id = 1000000
 
 #db = SQLAlchemy()
 
+#Connect to the postgresql database. returns the connection object and its cursor
+def connect_db():
+    conn = psycopg2.connect(os.environ['DATABASE_URL'], sslmode = 'require')
+    cur = conn.cursor()
+    return conn, cur
+
+
 @app.route("/")
 def hello():
     return "Hello"
 
+@app.route("/testdb")
+def test_db():
+    print("testing db now")
+    conn,cur = connect_db()
+    cur.execute("CREATE TABLE TESTTABLE")
+    cur.execute('CREATE TABLE EXAMPLETABLE('
+            'FIELD1 TEXT NOT NULL,'
+            'FIELD2 TEXT NOT NULL)')
+    cur.execute("INSERT INTO EXAMPLETABLE(FIELD1,FIELD2) VALUES('value1','value2'))")
+    conn.commit()
+    conn.close()
 
 
 @app.route("/get_key",methods = ['GET'])
@@ -203,51 +223,7 @@ def login_org():
     
     return resp
     
-#function which encrypts data using AES
-def aes_encrypt(data,key):
-	#process data to become suitable for encryption by converting to bytes if needed
-	if type(data) != bytes:
-		data = bytes(data, encoding = "utf8")
-	iv = Random.new().read(AES.block_size)
-	cipher = AES.new(key, AES.MODE_CFB,iv)
-	return str(list((iv+cipher.encrypt(data))))
 
-#function which decrypts data using AES
-def aes_decrypt(data,key):
-    if type(data) != bytes:
-      #  try:
-      print(data)
-      data = bytes(ast.literal_eval(data))
-     #   except:
-    #        print("Error: could not interpret data for decryption")
-            
-    iv = data[:16]
-    cipher = AES.new(key, AES.MODE_CFB, iv)
-    decrypted = cipher.decrypt(data[16:]).decode()
-    return decrypted  
-    
-    
-    
-    
-#function which encrypts data using RSA
-def rsa_encrypt(data, public_key):
-	if type(data) != bytes:
-		data = bytes(data, encoding = "utf8")
-	cipher = PKCS1_OAEP.new(public_key)
-	#hybrid encryption is used here as PKCS1_OAEP can only encrypt a very small amount of data
-	#to get around this, AES is used for the encryption of the data, and the AES key is encrypted using RSA
-	session_key = Random.get_random_bytes(16)
-	encrypted_data = aes_encrypt(data,session_key)
-	encrypted_session_key = cipher.encrypt(session_key)
-	return [encrypted_data, encrypted_session_key]
-
-#function which decrypts data using RSA
-def rsa_decrypt(data, private_key):
-	cipher = PKCS1_OAEP.new(private_key)
-	#first decrypt the session key using RSA
-	session_key = cipher.decrypt(data[1])
-	#then decrypt the data using AES and the session key
-	return aes_decrypt(data[0], session_key)
 
 if __name__ == "__main__":
     app.run()

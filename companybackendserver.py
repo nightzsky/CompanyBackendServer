@@ -6,6 +6,7 @@ Created on Tue Mar 13 20:22:30 2018
 """
 
 from flask import Flask,jsonify,request,Response
+import threading
 import requests
 import os
 import json
@@ -19,6 +20,7 @@ request_id_database = {}
 registered_user_database = {}
 num_requests = 0
 key_request_id = 1000000
+mutex = threading.Lock()
 
 
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://local'
@@ -47,6 +49,7 @@ def get_key():
     only the public_key.
     """
 
+    mutex.acquire()
     global key_request_id 
     key_request_id += 1
 
@@ -93,7 +96,7 @@ def get_key():
     # update database size
     global num_requests
     num_requests = len(request_id_database)
-    
+    mutex.release()
     return jsonify(for_user)
 
 @app.route("/display")
@@ -110,13 +113,14 @@ def get_database():
     """
     company calls this method. 
     """
-
+    mutex.acquire()
     # pass the counter to the caller to check for a full response on the client side
     num_requests = len(request_id_database)
 
     resp = jsonify(request_id_database)
     resp.headers['Access-Control-Allow-Origin'] = '*'
     print(resp)
+    mutex.release()
     return resp
 
 @app.route("/register_user", methods = ['POST'])

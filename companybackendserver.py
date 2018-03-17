@@ -6,10 +6,6 @@ Created on Tue Mar 13 20:22:30 2018
 """
 
 from flask import Flask,jsonify,request,Response
-from Crypto.Cipher import AES, PKCS1_OAEP
-from Crypto.PublicKey import RSA
-from Crypto.Hash import SHA256
-from Crypto import Random
 import requests
 import os
 import json
@@ -105,14 +101,12 @@ def get_database():
     """
     company calls this method. 
     """
-
     # pass the counter to the caller to check for a full response on the client side
     num_requests = len(request_id_database)
-
     resp = jsonify(request_id_database)
     resp.headers['Access-Control-Allow-Origin'] = '*'
     print(resp)
-    return (num_requests, resp)
+    return num_requests, resp
 
 @app.route("/register_user", methods = ['POST'])
 def register_user():

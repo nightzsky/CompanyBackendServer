@@ -39,11 +39,10 @@ def connect_db():
 def hello():
     return "Hello"
 
-@app.route("/testdb")
+@app.route("/testdb",methods = ['GET'])
 def test_db():
     print("testing db now")
     conn,cur = connect_db()
-    cur.execute("CREATE TABLE TESTTABLE")
     cur.execute('CREATE TABLE EXAMPLETABLE('
             'FIELD1 TEXT NOT NULL,'
             'FIELD2 TEXT NOT NULL)')

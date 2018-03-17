@@ -1,3 +1,9 @@
+from Crypto.Cipher import AES, PKCS1_OAEP
+from Crypto.PublicKey import RSA
+from Crypto.Hash import SHA256
+from Crypto import Random
+import ast
+
 #function which encrypts data using AES
 def aes_encrypt(data,key):
     #process data to become suitable for encryption by converting to bytes if needed

@@ -102,9 +102,7 @@ def display():
 
 @app.route("/get_database_size", methods = ['GET'])
 def get_database_size():
-    global num_requests
-    num_requests = len(request_id_database)
-    return num_requests
+    return len(request_id_database)
 
 @app.route("/get_database",methods = ['GET'])
 def get_database():

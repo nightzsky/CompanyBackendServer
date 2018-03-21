@@ -3,6 +3,7 @@ from Crypto.PublicKey import RSA
 from Crypto.Hash import SHA256
 from Crypto import Random
 import ast
+import base64
 
 #function which encrypts data using AES
 def aes_encrypt(data,key):
@@ -17,9 +18,9 @@ def aes_encrypt(data,key):
 def aes_decrypt(data,key):
     if type(data) != bytes:
         try:
-            print(data)
             data = bytes(ast.literal_eval(data))
-        except:
+        except Exception as e:
+            print(e)
             print("Error: could not interpret data for decryption")
             return
     iv = data[:16]
@@ -29,6 +30,9 @@ def aes_decrypt(data,key):
 
 #function which encrypts data using RSA
 def rsa_encrypt(data, public_key):
+    if type(public_key) == str:
+        public_key = RSA.importKey(public_key)
+
     if type(data) != bytes:
         data = bytes(data, encoding = "utf8")
     cipher = PKCS1_OAEP.new(public_key)
@@ -41,11 +45,21 @@ def rsa_encrypt(data, public_key):
 
 #function which decrypts data using RSA
 def rsa_decrypt(data, private_key):
+    if type(private_key) == str:
+        private_key = RSA.importKey(private_key)
+
+    if type(data) == str:
+        data = ast.literal_eval(data)
+        
     cipher = PKCS1_OAEP.new(private_key)
     #first decrypt the session key using RSA
+    if type(data[1] != bytes):
+        data[1] = bytes(data[1])
+    print("encrypted session key: %s"%list(data[1]))
     session_key = cipher.decrypt(data[1])
+    print("session key: %s"%list(session_key))
     #then decrypt the data using AES and the session key
-    return aes_decrypt(data[0], session_key)
+    return aes_decrypt(str(data[0]), session_key)
 
 
 #computes a SHA256 hash of the data
@@ -81,3 +95,13 @@ def java_to_python_bytes(arr):
     for i in range(len(arr)):
         arr[i] = arr[i]%256
     return arr
+
+#Encrypts a http request to be sent to the backend servers using an RSA public key
+def encrypt_request(req, pub_key):
+    encrypted = {}
+    for i in req:
+        if type(req[i]) == dict:
+            encrypted[str(rsa_encrypt(i,pub_key))] = encrypt_request(req)
+        encrypted[str(rsa_encrypt(i,pub_key))] = str(rsa_encrypt(req[i], pub_key))
+    return encrypted
+

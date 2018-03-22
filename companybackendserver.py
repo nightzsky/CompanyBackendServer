@@ -245,6 +245,7 @@ def register_user():
 #    
 #    # received ENCRYPTED user data from kyc backend
     user_data = json.loads(r.text)
+    print(type(user_data))
     user_data = user_data["userData"]
 #    
 #    #decrpyt the user data with AES key

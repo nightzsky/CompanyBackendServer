@@ -138,7 +138,6 @@ def hello():
     return "Hello"
 
 
-
 @app.route("/get_key",methods = ['GET'])
 def get_key():
 
@@ -192,30 +191,6 @@ def get_key():
     mutex.release()
     
     return jsonify(for_user)
-
-@app.route("/display")
-def display():
-    return jsonify(registered_user_database)
-
-@app.route("/get_database_size", methods = ['GET'])
-def get_database_size():
-    return str(len(request_id_database))
-
-@app.route("/get_database",methods = ['GET'])
-def get_database():
-
-    """
-    company calls this method. 
-    """
-    mutex.acquire()
-    # pass the counter to the caller to check for a full response on the client side
-    num_requests = len(request_id_database)
-
-    resp = jsonify(request_id_database)
-    resp.headers['Access-Control-Allow-Origin'] = '*'
-    print(resp)
-    mutex.release()
-    return resp
 
 @app.route("/register_user", methods = ['POST'])
 def register_user():

@@ -213,6 +213,10 @@ def register_user():
     
     print(str_private_key)
     print(type(str_private_key))
+    print(request.json["username"])
+    print(request.json["password"])
+    print(request.json["block_id"])
+    print(request.json["AES_key"])
     #decrypt the user request using private key
     username = rsa_decrypt(java_to_python_bytes(request.json["username"]),private_key)
     password = rsa_decrypt(java_to_python_bytes(request.json["password"]),private_key)

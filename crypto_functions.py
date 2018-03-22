@@ -92,9 +92,10 @@ def merkle(data):
 
 #converts an int array of java bytes to an int array of python bytes
 def java_to_python_bytes(arr):
-    for i in range(len(arr[0])):
-        arr[0][i] = arr[0][i]%256
-    return arr[0]
+    for i in range(len(arr)):
+        for j in range(len(arr(i))):    
+            arr[i][j] = arr[i][j]%256
+    return arr
 
 #Encrypts a http request to be sent to the backend servers using an RSA public key
 def encrypt_request(req, pub_key):

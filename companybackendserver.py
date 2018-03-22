@@ -118,7 +118,7 @@ def get_private_key(request_id):
     for row in rows:
         print("row[0]")
         print(row[0])
-        if (row[0] == request_id):
+        if (row[0] == 21):
             print("happy")
             print(row[1])
             private_key = row[1]
@@ -204,6 +204,7 @@ def get_key():
 @app.route("/register_user", methods = ['POST'])
 def register_user():
     request_id = request.json["request_id"] 
+    print("received request_id")
     print(request_id)
     #retrieve the private key from request_database
     str_private_key = get_private_key(request_id)

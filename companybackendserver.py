@@ -118,7 +118,7 @@ def get_private_key(request_id):
     for row in rows:
         print("row[0]")
         print(row[0])
-        if (row[0] == 21):
+        if (row[0] == (int)(request_id)):
             print("happy")
             print(row[1])
             private_key = row[1]

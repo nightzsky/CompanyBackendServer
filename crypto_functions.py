@@ -92,6 +92,7 @@ def merkle(data):
 
 #converts an int array of java bytes to an int array of python bytes
 def java_to_python_bytes(arr):
+    arr = ast.literal_eval(arr)
     for i in range(len(arr)):
         for j in range(len(arr[i])):    
             arr[i][j] = arr[i][j]%256

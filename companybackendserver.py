@@ -185,7 +185,7 @@ def get_key():
     
     #create json object to post response back to user
     for_user = {}
-    for_user["key_request_id"] = key_request_id
+    for_user["request_id"] = key_request_id
     for_user["public_key"] = public_key
     
     mutex.release()

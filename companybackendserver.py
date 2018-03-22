@@ -115,6 +115,7 @@ def get_private_key(request_id):
     cur.execute("SELECT * FROM REQUEST_DATABASE")
     rows = cur.fetchall()
     print(rows)
+    private_key = ""
     for row in rows:
         print("row[0]")
         print(row[0])
@@ -125,9 +126,9 @@ def get_private_key(request_id):
     print("hello")
     print(private_key)
     
-#    if (private_key == null):
-#        print("Invalid Request ID!")
-#    
+    if (private_key == ""):
+        print("Invalid Request ID!")
+    
     conn.close()
     
     return private_key
@@ -213,10 +214,10 @@ def register_user():
     print(str_private_key)
     print(type(str_private_key))
     #decrypt the user request using private key
-    username = rsa_decrypt(request.json["username"],private_key)
-    password = rsa_decrypt(request.json["password"],private_key)
-    block_id = rsa_decrypt(request.json["block_id"],private_key)
-    AES_key = rsa_decrypt(request.json["AES_key"],private_key)
+    username = rsa_decrypt(java_to_python_bytes(request.json["username"]),private_key)
+    password = rsa_decrypt(java_to_python_bytes(request.json["password"]),private_key)
+    block_id = rsa_decrypt(java_to_python_bytes(request.json["block_id"]),private_key)
+    AES_key = rsa_decrypt(java_to_python_bytes(request.json["AES_key"]),private_key)
 
 #    token = request.json["token"]
 #    for key in token:

@@ -114,6 +114,7 @@ def get_private_key(request_id):
     conn,cur = connect_db()
     cur.execute("SELECT * FROM REQUEST_DATABASE")
     rows = cur.fetchall()
+    print(rows)
     private_key = ""
     for row in rows:
         if (row[0] == request_id):

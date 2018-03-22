@@ -202,20 +202,22 @@ def register_user():
     
     print(str_private_key)
     #decrypt the user request using private key
-    username = rsa_decrpyt(request.json["username"],private_key)
+    username = rsa_decrypt(request.json["username"],private_key)
     password = rsa_decrypt(request.json["password"],private_key)
+    block_id = rsa_decrypt(request.json["block_id"],private_key)
+    AES_key = rsa_decrypt(request.json["AES_key"],private_key)
 
-    token = request.json["token"]
-    for key in token:
-        token[key] = rsa_decrypt(token[key],private_key)
-    
+#    token = request.json["token"]
+#    for key in token:
+#        token[key] = rsa_decrypt(token[key],private_key)
+#    
     print(username)
     print(password)
-    print(token)
+#    print(token)
     
     #retrieve block id and AES key
-    block_id = token["block_id"]
-    AES_key = token["AES_key"]
+#    block_id = token["block_id"]
+#    AES_key = token["AES_key"]
     
     print("Block ID: %s"%block_id)
     print("AES_key: %s"%AES_key)

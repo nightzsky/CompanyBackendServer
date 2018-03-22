@@ -118,6 +118,9 @@ def get_private_key(request_id):
     for row in rows:
         if (row[0] == request_id):
             private_key = row[1]
+    print("hello")
+    print(private_key)
+    
     if (private_key == ""):
         print("Invalid Request ID!")
     
@@ -182,6 +185,8 @@ def get_key():
     
     #storing the request id and the correspond private key to databse
     update_request_database(key_request_id,private_key)
+    print("private_key")
+    print(private_key)
     
     #create json object to post response back to user
     for_user = {}

@@ -29,11 +29,15 @@ mutex = threading.Lock()
 
 #Connect to the postgresql database. returns the connection object and its cursor
 def connect_db():
+<<<<<<< HEAD
     os.environ['DATABASE_URL'] = "postgres://kulppdlibhsggy:4655032868ea8a3c938e2bd5d015130b41c7810d012e8edc3518de8490bf205d@ec2-54-83-23-91.compute-1.amazonaws.com:5432/db5s1h8iuhepc"
+=======
+>>>>>>> fe744f623edac53051aafff60d2dbc08749ca783
     conn = psycopg2.connect(os.environ['DATABASE_URL'], sslmode = 'require')
     cur = conn.cursor()
     return conn, cur
 
+<<<<<<< HEAD
 #get the most updated request_id
 def get_previous_request_id():
     conn,cur = connect_db()
@@ -132,10 +136,14 @@ def add_user_to_database(username,password,user_info):
                 VALUES (%s,%s,%s)",(username,password,json.dumps(user_info)))
     conn.commit()
     conn.close()
+=======
+>>>>>>> fe744f623edac53051aafff60d2dbc08749ca783
 
 @app.route("/")
 def hello():
     return "Hello"
+
+
 
 @app.route("/get_key",methods = ['GET'])
 def get_key():
@@ -147,10 +155,16 @@ def get_key():
     """
 
     mutex.acquire()
+<<<<<<< HEAD
     key_request_id = get_request_id()
     print("Request ID is %s"%key_request_id)
     
     #company generates their own RSA key pairs
+=======
+    global key_request_id 
+    key_request_id += 1
+
+>>>>>>> fe744f623edac53051aafff60d2dbc08749ca783
     RSA_pvt_key = RSA.generate(2048)
     RSA_pub_key = RSA_pvt_key.publickey()
 
@@ -164,8 +178,19 @@ def get_key():
 
     #delete file after this to prevent key from being stored as a file
     os.remove("publicKey.pem")
+<<<<<<< HEAD
     public_key = RSA_pub_key_str.decode("utf-8")
 
+=======
+
+    print("Storing RSA public key in company info")
+
+    #organization["public_key"] = RSA_pub_key_str.decode("utf-8")
+    public_key = RSA_pub_key_str.decode("utf-8")
+
+    #store private key, AES key, and user's hashed_id in the token
+
+>>>>>>> fe744f623edac53051aafff60d2dbc08749ca783
     #first get private key as plaintext
     f = open("privateKey.pem", "a+b")
     f.write(RSA_pvt_key.exportKey('PEM'))
@@ -176,6 +201,7 @@ def get_key():
 
     #delete file after this to prevent key from being stored as a file
     os.remove("privateKey.pem")
+
     private_key = RSA_pvt_key_str.decode("utf-8")
     
     #storing the request id and the correspond private key to databse
@@ -186,10 +212,45 @@ def get_key():
     for_user["key_request_id"] = key_request_id
     for_user["public_key"] = public_key
     
+<<<<<<< HEAD
     mutex.release()
     
     return jsonify(for_user)
 
+=======
+    request_id_database[key_request_id]={"private_key":private_key,"public_key":public_key}
+
+    # update database size
+    global num_requests
+    num_requests = len(request_id_database)
+    mutex.release()
+    return jsonify(for_user)
+
+@app.route("/display")
+def display():
+    return jsonify(registered_user_database)
+
+@app.route("/get_database_size", methods = ['GET'])
+def get_database_size():
+    return str(len(request_id_database))
+
+@app.route("/get_database",methods = ['GET'])
+def get_database():
+
+    """
+    company calls this method. 
+    """
+    mutex.acquire()
+    # pass the counter to the caller to check for a full response on the client side
+    num_requests = len(request_id_database)
+
+    resp = jsonify(request_id_database)
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    print(resp)
+    mutex.release()
+    return resp
+
+>>>>>>> fe744f623edac53051aafff60d2dbc08749ca783
 @app.route("/register_user", methods = ['POST'])
 def register_user():
     request_id = request.json["request_id"] 
@@ -270,6 +331,7 @@ def get_database():
     
     request_database = get_request_database()
     
+<<<<<<< HEAD
     resp = jsonify(request_database)
     resp.headers['Access-Control-Allow-Origin'] = '*'
     print(resp)
@@ -277,6 +339,8 @@ def get_database():
     return resp
 
     
+=======
+>>>>>>> fe744f623edac53051aafff60d2dbc08749ca783
 
 
 if __name__ == "__main__":

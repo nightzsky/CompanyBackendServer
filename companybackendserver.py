@@ -250,7 +250,6 @@ def get_database():
     mutex.release()
     return resp
 
->>>>>>> fe744f623edac53051aafff60d2dbc08749ca783
 @app.route("/register_user", methods = ['POST'])
 def register_user():
     request_id = request.json["request_id"] 
@@ -276,18 +275,21 @@ def register_user():
     block_id = token["block_id"]
     AES_key = token["AES_key"]
     
+    print("Block ID: %s"%block_id)
+    print("AES_key: %s"%AES_key)
+    
     #post request to kyc backend to retrieve user block of info
-    r = requests.post("https://kyc-project.herokuapp.com/register_org", json = {"block_id":block_id})
-    print(r.status_code)
-    print(r.text)
-    
-    # received ENCRYPTED user data from kyc backend
-    user_data = json.loads(r.text)
-    user_data = user_data["userData"]
-    
-    #decrpyt the user data with AES key
-    for key in user_data:
-        user_data[key] = aes_decrypt(user_data[key],AES_key)
+#    r = requests.post("https://kyc-project.herokuapp.com/register_org", json = {"block_id":block_id})
+#    print(r.status_code)
+#    print(r.text)
+#    
+#    # received ENCRYPTED user data from kyc backend
+#    user_data = json.loads(r.text)
+#    user_data = user_data["userData"]
+#    
+#    #decrpyt the user data with AES key
+#    for key in user_data:
+#        user_data[key] = aes_decrypt(user_data[key],AES_key)
     
     print(user_data)
     

@@ -80,7 +80,7 @@ def get_request_database():
 #get the company database
 def get_company_database():
     conn,cur = connect_db()
-    cur.execute("SELECT * FROM REQUEST_DATABASE")
+    cur.execute("SELECT * FROM COMPANY_DATABASE")
     rows = cur.fetchall()
     company_database = {}
     for row in rows:
@@ -91,6 +91,7 @@ def get_company_database():
         company_database["Username"] = username
         company_database["Password"] = password
         company_database["User Info"] = user_info
+    
     print(company_database)
     print("Done printing database")
     conn.close()
@@ -140,6 +141,17 @@ def add_user_to_database(username,password,user_info):
                 VALUES (%s,%s,%s)",(username,password,json.dumps(user_info)))
     conn.commit()
     conn.close()
+    
+def decrypt_request(request_id,json):
+    private_key = get_private_key(request_id)
+    decrypted = {}
+    for key in json:
+        if type(json[key]) == dict:
+            decrypted[rsa_decrypt(ast.literal_eval(key),private_key)] = decrypt_request(json[key])
+        else:
+            decrypted[rsa_decrypt(ast.literal_eval(key),private_key)] = rsa_decrypt(ast.literal_eval(json[key]), private_key)
+
+    return decrypted
 
 @app.route("/")
 def hello():
@@ -207,34 +219,19 @@ def register_user():
     request_id = request.json["request_id"] 
     print("received request_id")
     print(request_id)
+    
     #retrieve the private key from request_database
     str_private_key = get_private_key(request_id)
     private_key = RSA.import_key(str_private_key)
     
-    print(str_private_key)
-    print(type(str_private_key))
-    print(type(request.json["username"]))
-    print(type(request.json["password"]))
-    print(type(request.json["block_id"]))
-    print(type(request.json["AES_key"]))
     #decrypt the user request using private key
     username = rsa_decrypt(java_to_python_bytes(request.json["username"]),private_key)
     password = rsa_decrypt(java_to_python_bytes(request.json["password"]),private_key)
     block_id = rsa_decrypt(java_to_python_bytes(request.json["block_id"]),private_key)
     AES_key = rsa_decrypt(java_to_python_bytes(request.json["AES_key"]),private_key)
-
-#    token = request.json["token"]
-#    for key in token:
-#        token[key] = rsa_decrypt(token[key],private_key)
-#    
+    
     print(username)
-    print(password)
-#    print(token)
-    
-    #retrieve block id and AES key
-#    block_id = token["block_id"]
-#    AES_key = token["AES_key"]
-    
+    print(password)  
     print("Block ID: %s"%block_id)
     print("AES_key: %s"%AES_key)
     

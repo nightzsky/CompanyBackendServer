@@ -206,6 +206,7 @@ def register_user():
     private_key = RSA.import_key(str_private_key)
     
     print(str_private_key)
+    print(type(str_private_key))
     #decrypt the user request using private key
     username = rsa_decrypt(request.json["username"],private_key)
     password = rsa_decrypt(request.json["password"],private_key)

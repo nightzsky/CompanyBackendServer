@@ -115,18 +115,19 @@ def get_private_key(request_id):
     cur.execute("SELECT * FROM REQUEST_DATABASE")
     rows = cur.fetchall()
     print(rows)
-    private_key = ""
     for row in rows:
         print("row[0]")
         print(row[0])
         if (row[0] == request_id):
+            print("happy")
+            print(row[1])
             private_key = row[1]
     print("hello")
     print(private_key)
     
-    if (private_key == ""):
-        print("Invalid Request ID!")
-    
+#    if (private_key == null):
+#        print("Invalid Request ID!")
+#    
     conn.close()
     
     return private_key

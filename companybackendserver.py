@@ -117,6 +117,8 @@ def get_private_key(request_id):
     print(rows)
     private_key = ""
     for row in rows:
+        print("row[0]")
+        print(row[0])
         if (row[0] == request_id):
             private_key = row[1]
     print("hello")

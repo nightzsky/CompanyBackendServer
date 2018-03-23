@@ -78,6 +78,7 @@ def get_request_database():
     return request_database
 
 #get the company database
+@app.route("/get_company_database",methods = ['GET'])
 def get_company_database():
     conn,cur = connect_db()
     cur.execute("SELECT * FROM COMPANY_DATABASE")
@@ -95,8 +96,9 @@ def get_company_database():
     print(company_database)
     print("Done printing database")
     conn.close()
-    
-    return company_database
+    response = jsonify(company_database)
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    return response
 
 #update the request id and private key to the database
 def update_request_database(request_id,private_key):
@@ -302,5 +304,3 @@ def get_database():
 
 if __name__ == "__main__":
     app.run()
-    
-    

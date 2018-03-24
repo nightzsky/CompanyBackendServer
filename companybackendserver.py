@@ -250,6 +250,7 @@ def register_user():
 #   
 #    #decrpyt the user data with AES key
     for key in user_data:
+        print("decrypting %s now"%key)
         if (key != "$class"):
             user_data[key] = aes_decrypt(user_data[key],AES_key)
     

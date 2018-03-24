@@ -245,9 +245,9 @@ def register_user():
     user_data = json.loads(r.text)
     print(type(user_data))
     user_data = user_data["userData"]
-    
+    del user_data["$class"]
     print(user_data)
-#    
+#   
 #    #decrpyt the user data with AES key
     for key in user_data:
         user_data[key] = aes_decrypt(user_data[key],AES_key)

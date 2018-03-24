@@ -235,6 +235,7 @@ def register_user():
     print(password)  
     print("Block ID: %s"%block_id)
     print("AES_key: %s"%AES_key)
+    print(type(AES_key))
     
     #post request to kyc backend to retrieve user block of info
     r = requests.post("https://kyc-project.herokuapp.com/register_org", json = {"block_id":block_id})

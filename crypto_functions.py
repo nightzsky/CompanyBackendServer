@@ -17,7 +17,7 @@ def aes_encrypt(data,key):
 #function which decrypts data using AES
 def aes_decrypt(data,key):
     if type(key) != bytes:
-        key = bytes(key, encoding = "utf8")
+        key = bytes(ast.literal_eval(key))
     if type(data) != bytes:
         try:
             data = bytes(ast.literal_eval(data))

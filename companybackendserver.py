@@ -29,7 +29,6 @@ mutex = threading.Lock()
 
 #Connect to the postgresql database. returns the connection object and its cursor
 def connect_db():
-    os.environ['DATABASE_URL'] = "postgres://kulppdlibhsggy:4655032868ea8a3c938e2bd5d015130b41c7810d012e8edc3518de8490bf205d@ec2-54-83-23-91.compute-1.amazonaws.com:5432/db5s1h8iuhepc"
     conn = psycopg2.connect(os.environ['DATABASE_URL'], sslmode = 'require')
     cur = conn.cursor()
     return conn, cur
@@ -78,6 +77,7 @@ def get_request_database():
     return request_database
 
 #get the company database
+@app.route("/get_company_database",methods = ['GET'])
 def get_company_database():
     conn,cur = connect_db()
     cur.execute("SELECT * FROM COMPANY_DATABASE")
@@ -95,8 +95,9 @@ def get_company_database():
     print(company_database)
     print("Done printing database")
     conn.close()
-    
-    return company_database
+    response = jsonify(company_database)
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    return response
 
 #update the request id and private key to the database
 def update_request_database(request_id,private_key):
@@ -303,5 +304,3 @@ def get_database():
 
 if __name__ == "__main__":
     app.run()
-    
-    

@@ -307,7 +307,7 @@ def login_org():
 @app.route("/get_database_size", methods = ['GET'])
 def get_database_size():
     conn,cur,num_requests = get_previous_request_id()
-    response = jsonify(num_requests)
+    response = jsonify({"Total requests" : num_request})
     
     return response
 

@@ -13,7 +13,7 @@ import json
 import ast
 import psycopg2
 from crypto_functions import *
-#from flask.ext.sqlalchemy import SQLAlchemy
+
 app = Flask(__name__)
 
 mutex = threading.Lock()
@@ -23,26 +23,27 @@ def connect_db():
     conn = psycopg2.connect(os.environ['DATABASE_URL'], sslmode = 'require')
     cur = conn.cursor()
     return conn, cur
-
-
-#get the most updated request_id
-def get_previous_request_id():
+#select database
+def select_db(column,database):
     conn,cur = connect_db()
-    #retrieve count from the count table
-    cur.execute("SELECT COUNT FROM COUNTTABLE")
+    cur.execute("SELECT %s FROM %s"%(column,database))
     rows = cur.fetchall()
+    return conn,cur,rows
+
+#get the most updated database
+def get_previous_request_id():
+    conn,cur,rows = select_db("COUNT","COUNTTABLE")
     count = rows[0][0]
     print("Current ID: %s"%count)
     
-    return count
-    
-#get the request id from the table
+    return conn,cur,count
+
+#get request id
 def get_request_id():
-    conn,cur = connect_db()
-    count = get_previous_request_id()
-    count += 1 #update the count and the table
+    conn,cur,count = get_previous_request_id()
+    count += 1
     cur.execute("UPDATE COUNTTABLE SET COUNT = '%s'"%count)
-    print("Updated CountTable")
+    print("Updated Counttable")
     
     conn.commit()
     conn.close()
@@ -51,46 +52,37 @@ def get_request_id():
     
     return request_id
 
-#get the request database
-def get_request_database():
-    conn,cur = connect_db()
-    cur.execute("SELECT * FROM REQUEST_DATABASE")
-    rows = cur.fetchall()
-    request_database ={}
+#get private key for decryption
+def get_private_key(request_id):
+    conn,cur,rows = select_db("*","REQUEST_DATABASE")
+    private_key = ""
     for row in rows:
-        request_id = row[0]
-        private_key = row[1]
-        request_database[request_id] = private_key
-        print("Request ID: %s"%request_id)
-        print("Private Key: %s"%private_key)
-    print("Done printing database")
-    conn.close()
-    
-    return request_database
-
-#get the company database
-@app.route("/get_company_database",methods = ['GET'])
-def get_company_database():
-    conn,cur = connect_db()
-    cur.execute("SELECT * FROM COMPANY_DATABASE")
-    rows = cur.fetchall()
-    company_database = {}
-    for row in rows:
-        username = row[0]
-        password = row[1]
-        user_info = row[2]
+        if (row[0] == (int)(request_id)):
+            print(row[1])
+            private_key = row[1]
+    if(private_key == ""):
+        print("Invalid Request ID!")
         
-        company_database["Username"] = username
-        company_database["Password"] = password
-        company_database["User Info"] = user_info
-    
-    print(company_database)
-    print("Done printing database")
     conn.close()
-    response = jsonify(company_database)
-    response.headers['Access-Control-Allow-Origin'] = '*'
-    return response
+    
+    return private_key
 
+#check if the user exists on the database
+def check_for_login(username,password):
+    conn,cur,rows = select_db("*","COMPANY_DATABASE")
+    can_login = False
+    for row in rows:
+        if (row[0] == username):
+            if (row[1]==password):
+                can_login = True
+            else:
+                can_login = False
+        else:
+            can_login = False
+    if (can_login == False):
+        print("Invalid username/password!")
+    return can_login
+    
 #update the request id and private key to the database
 def update_request_database(request_id,private_key):
     conn,cur = connect_db()
@@ -102,31 +94,7 @@ def update_request_database(request_id,private_key):
     print("Updated request id and private key")
     conn.commit()
     conn.close()
-
-#get the private key from the table for decryption
-def get_private_key(request_id):
-    conn,cur = connect_db()
-    cur.execute("SELECT * FROM REQUEST_DATABASE")
-    rows = cur.fetchall()
-    print(rows)
-    private_key = ""
-    for row in rows:
-        print("row[0]")
-        print(row[0])
-        if (row[0] == (int)(request_id)):
-            print("happy")
-            print(row[1])
-            private_key = row[1]
-    print("hello")
-    print(private_key)
     
-    if (private_key == ""):
-        print("Invalid Request ID!")
-    
-    conn.close()
-    
-    return private_key
-
 #add the decrypted user info to the company database
 def add_user_to_database(username,password,user_info):
     conn,cur = connect_db()
@@ -134,12 +102,16 @@ def add_user_to_database(username,password,user_info):
                 VALUES (%s,%s,%s)",(username,password,json.dumps(user_info)))
     conn.commit()
     conn.close()
+#to view the request database with request id and corresponding public key stored
+def get_request_database():
+    conn,cur,rows = select_db("*","REQUEST_DATABASE")
+    print(rows)
+    print(type(rows))
+    return rows
 
 #extract the user_info for respective user from database
-def extract_user_from_database(username):
-    conn,cur = connect_db()
-    cur.execute("SELECT * FROM COMPANY_DATABASE")
-    rows = cur.fetchall()
+def extract_user_info(username):
+    conn,cur,rows = select_db("*","COMPANT_DATABASE")
     user_info = ""
     for row in rows:
         if (row[0] == username):
@@ -150,27 +122,199 @@ def extract_user_from_database(username):
     conn.close()
     return user_info
 
-def check_for_login(username,password):
-    conn,cur = connect_db()
-    cur.execute("SELECT * FROM COMPANY_DATABASE")
-    rows = cur.fetchall()
-    can_login = False
-    for row in rows:
-        if (row[0] == username):
-            if (row[1] == password):
-                can_login = True
-            else:
-                can_login = False
-        else:
-            can_login = False
-    if (can_login == False):
-        print("Invalid username/password.")
-    else:
-        print("Welcome %s"%username)
-    
-    return can_login
-    
-    
+#to view the company database, all the users info
+@app.route("/get_company_databse",methods = ['GET'])
+def get_company_database():
+    conn,cur,rows = select_db("*","COMPANY_DATABASE")
+    print(rows)
+    print("hi")
+    response = jsonify(rows)
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    return response
+
+##get the company database
+#@app.route("/get_company_database",methods = ['GET'])
+#def get_company_database():
+#    conn,cur = connect_db()
+#    cur.execute("SELECT * FROM COMPANY_DATABASE")
+#    rows = cur.fetchall()
+#    company_database = {}
+#    for row in rows:
+#        username = row[0]
+#        password = row[1]
+#        user_info = row[2]
+#        
+#        company_database["Username"] = username
+#        company_database["Password"] = password
+#        company_database["User Info"] = user_info
+#    
+#    print(company_database)
+#    print("Done printing database")
+#    conn.close()
+#    response = jsonify(company_database)
+#    response.headers['Access-Control-Allow-Origin'] = '*'
+#    return response
+
+
+
+
+##get the most updated request_id
+#def get_previous_request_id():
+#    conn,cur = connect_db()
+#    #retrieve count from the count table
+#    cur.execute("SELECT COUNT FROM COUNTTABLE")
+#    rows = cur.fetchall()
+#    count = rows[0][0]
+#    print("Current ID: %s"%count)
+#    
+#    return count
+#    
+##get the request id from the table
+#def get_request_id():
+#    conn,cur = connect_db()
+#    count = get_previous_request_id()
+#    count += 1 #update the count and the table
+#    cur.execute("UPDATE COUNTTABLE SET COUNT = '%s'"%count)
+#    print("Updated CountTable")
+#    
+#    conn.commit()
+#    conn.close()
+#    
+#    request_id = count
+#    
+#    return request_id
+
+##get the request database
+#def get_request_database():
+#    conn,cur = connect_db()
+#    cur.execute("SELECT * FROM REQUEST_DATABASE")
+#    rows = cur.fetchall()
+#    request_database ={}
+#    for row in rows:
+#        request_id = row[0]
+#        private_key = row[1]
+#        request_database[request_id] = private_key
+#        print("Request ID: %s"%request_id)
+#        print("Private Key: %s"%private_key)
+#    print("Done printing database")
+#    conn.close()
+#    
+#    return request_database
+
+#get the company database
+#@app.route("/get_company_database",methods = ['GET'])
+#def get_company_database():
+#    conn,cur = connect_db()
+#    cur.execute("SELECT * FROM COMPANY_DATABASE")
+#    rows = cur.fetchall()
+#    company_database = {}
+#    for row in rows:
+#        username = row[0]
+#        password = row[1]
+#        user_info = row[2]
+#        
+#        company_database["Username"] = username
+#        company_database["Password"] = password
+#        company_database["User Info"] = user_info
+#    
+#    print(company_database)
+#    print("Done printing database")
+#    conn.close()
+#    response = jsonify(company_database)
+#    response.headers['Access-Control-Allow-Origin'] = '*'
+#    return response
+
+##update the request id and private key to the database
+#def update_request_database(request_id,private_key):
+#    conn,cur = connect_db()
+#    
+#    #update the request_database with request id and private key
+#    cur.execute("INSERT INTO REQUEST_DATABASE (ID,PRIVATE_KEY) \
+#                VALUES (%s,%s)",(request_id,private_key))
+#    
+#    print("Updated request id and private key")
+#    conn.commit()
+#    conn.close()
+
+##get the private key from the table for decryption
+#def get_private_key(request_id):
+#    conn,cur = connect_db()
+#    cur.execute("SELECT * FROM REQUEST_DATABASE")
+#    rows = cur.fetchall()
+#    print(rows)
+#    private_key = ""
+#    for row in rows:
+#        print("row[0]")
+#        print(row[0])
+#        if (row[0] == (int)(request_id)):
+#            print("happy")
+#            print(row[1])
+#            private_key = row[1]
+#    print("hello")
+#    print(private_key)
+#    
+#    if (private_key == ""):
+#        print("Invalid Request ID!")
+#    
+#    conn.close()
+#    
+#    return private_key
+
+#add the decrypted user info to the company database
+#def add_user_to_database(username,password,user_info):
+#    conn,cur = connect_db()
+#    cur.execute("INSERT INTO COMPANY_DATABASE (USERNAME,PASSWORD,USER_INFO) \
+#                VALUES (%s,%s,%s)",(username,password,json.dumps(user_info)))
+#    conn.commit()
+#    conn.close()
+#extract the user_info for respective user from database
+#def extract_user_info(username):
+#    conn,cur,rows = select_db("*","COMPANT_DATABASE")
+#    user_info = ""
+#    for row in rows:
+#        if (row[0] == username):
+#            user_info = row[2]
+#            print(user_info)
+#    if (user_info == ""):
+#        print("User does not exist.")
+#    conn.close()
+#    return user_info
+##extract the user_info for respective user from database
+#def extract_user_from_database(username):
+#    conn,cur = connect_db()
+#    cur.execute("SELECT * FROM COMPANY_DATABASE")
+#    rows = cur.fetchall()
+#    user_info = ""
+#    for row in rows:
+#        if (row[0] == username):
+#            user_info = row[2]
+#            print(user_info)
+#    if (user_info == ""):
+#        print("User does not exist.")
+#    conn.close()
+#    return user_info
+
+#def check_for_login(username,password):
+#    conn,cur = connect_db()
+#    cur.execute("SELECT * FROM COMPANY_DATABASE")
+#    rows = cur.fetchall()
+#    can_login = False
+#    for row in rows:
+#        if (row[0] == username):
+#            if (row[1] == password):
+#                can_login = True
+#            else:
+#                can_login = False
+#        else:
+#            can_login = False
+#    if (can_login == False):
+#        print("Invalid username/password.")
+#    else:
+#        print("Welcome %s"%username)
+#    
+#    return can_login
+#    
+#    
 def decrypt_request(request_id,json):
     #retrieve the private key from request_database
     str_private_key = get_private_key(request_id)
@@ -336,13 +480,13 @@ def login_org():
     print(resp)
     return resp
     
-@app.route("/display")
-def display():
-    return jsonify(registered_user_database)
+#@app.route("/display")
+#def display():
+#    return jsonify(registered_user_database)
 
 @app.route("/get_database_size", methods = ['GET'])
 def get_database_size():
-    num_requests = get_previous_request_id()
+    conn,cur,num_requests = get_previous_request_id()
     return num_requests
 
 @app.route("/get_database",methods = ['GET'])
@@ -353,7 +497,7 @@ def get_database():
     """
     mutex.acquire()
     # pass the counter to the caller to check for a full response on the client side
-    num_requests = get_previous_request_id()
+    conn,cur,num_requests = get_previous_request_id()
     
     request_database = get_request_database()
     

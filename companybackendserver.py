@@ -16,22 +16,14 @@ from crypto_functions import *
 #from flask.ext.sqlalchemy import SQLAlchemy
 app = Flask(__name__)
 
-request_id_database = {}
-registered_user_database = {}
-num_requests = 0
-key_request_id = 1000000
 mutex = threading.Lock()
-
-
-#app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://local'
-
-#db = SQLAlchemy()
 
 #Connect to the postgresql database. returns the connection object and its cursor
 def connect_db():
     conn = psycopg2.connect(os.environ['DATABASE_URL'], sslmode = 'require')
     cur = conn.cursor()
     return conn, cur
+
 
 #get the most updated request_id
 def get_previous_request_id():
@@ -180,7 +172,10 @@ def check_for_login(username,password):
     
     
 def decrypt_request(request_id,json):
-    private_key = get_private_key(request_id)
+    #retrieve the private key from request_database
+    str_private_key = get_private_key(request_id)
+    private_key = RSA.import_key(str_private_key)
+    
     decrypted = {}
     for key in json:
         if type(json[key]) == dict:
@@ -253,19 +248,37 @@ def get_key():
 
 @app.route("/register_user", methods = ['POST'])
 def register_user():
-    request_id = request.json["request_id"] 
+    received_request = request.json
+    print(received_request)
+    
+    request_id = received_request["request_id"] 
     print("received request_id")
     print(request_id)
     
-    #retrieve the private key from request_database
-    str_private_key = get_private_key(request_id)
-    private_key = RSA.import_key(str_private_key)
+#    #retrieve the private key from request_database
+#    str_private_key = get_private_key(request_id)
+#    private_key = RSA.import_key(str_private_key)
+    
+    #delete request_id from the request received for decrpytion
+    if ("request_id" in received_request):
+        del received_request["request_id"]
+    
+    print(received_request)
+    
+    #decrypt the request received
+    decrypted = decrypt_request(request_id,received_request)
+    print(decrypted)
     
     #decrypt the user request using private key
-    username = rsa_decrypt(java_to_python_bytes(request.json["username"]),private_key)
-    password = rsa_decrypt(java_to_python_bytes(request.json["password"]),private_key)
-    block_id = rsa_decrypt(java_to_python_bytes(request.json["block_id"]),private_key)
-    AES_key = rsa_decrypt(java_to_python_bytes(request.json["AES_key"]),private_key)
+    username = decrypted["username"]
+    password = decrypted["password"]
+    block_id = decrypted["block_id"]
+    AES_key = decrypted["AES_key"]
+    
+#    rsa_decrypt(java_to_python_bytes(request.json["username"]),private_key)
+#    password = rsa_decrypt(java_to_python_bytes(request.json["password"]),private_key)
+#    block_id = rsa_decrypt(java_to_python_bytes(request.json["block_id"]),private_key)
+#    AES_key = rsa_decrypt(java_to_python_bytes(request.json["AES_key"]),private_key)
     
     print(username)
     print(password)  
@@ -288,8 +301,7 @@ def register_user():
 #    #decrpyt the user data with AES key
     for key in user_data:
         print("decrypting %s now"%key)
-        if (key != "$class"):
-            user_data[key] = aes_decrypt(user_data[key],AES_key)
+        user_data[key] = aes_decrypt(user_data[key],AES_key)
     
     print(user_data)
     
@@ -300,14 +312,30 @@ def register_user():
 
 @app.route("/login_org",methods = ['POST'])
 def login_org():
-    request_id = request.json["request_id"]
+    received_request = request.json
+    print(received_request)
     
-    #retrieve the private key from request_database
-    str_private_key = get_private_key(request_id)
-    private_key = RSA.import_key(str_private_key)
+    request_id = received_request["request_id"] 
+    print("received request_id")
+    print(request_id)
     
-    username = rsa_decrypt(java_to_python_bytes(request.json["username"]),private_key)
-    password = rsa_decrypt(java_to_python_bytes(request.json["password"]),private_key)
+    if ("request_id" in received_request):
+        del received_request["request_id"]
+    
+    print(received_request)
+        
+    
+#    #retrieve the private key from request_database
+#    str_private_key = get_private_key(request_id)
+#    private_key = RSA.import_key(str_private_key)
+#    
+    username = received_request["username"]
+    password = received_request["password"]
+    
+    print("username %s"%username)
+    print("password %s"%password)
+#    rsa_decrypt(java_to_python_bytes(request.json["username"]),private_key)
+#    password = rsa_decrypt(java_to_python_bytes(request.json["password"]),private_key)
     
     can_login = check_for_login(username,password)
     if (can_login):

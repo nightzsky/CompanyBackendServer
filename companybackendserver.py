@@ -255,10 +255,6 @@ def register_user():
     print("received request_id")
     print(request_id)
     
-#    #retrieve the private key from request_database
-#    str_private_key = get_private_key(request_id)
-#    private_key = RSA.import_key(str_private_key)
-    
     #delete request_id from the request received for decrpytion
     if ("request_id" in received_request):
         del received_request["request_id"]
@@ -275,11 +271,6 @@ def register_user():
     block_id = decrypted["block_id"]
     AES_key = decrypted["AES_key"]
     
-#    rsa_decrypt(java_to_python_bytes(request.json["username"]),private_key)
-#    password = rsa_decrypt(java_to_python_bytes(request.json["password"]),private_key)
-#    block_id = rsa_decrypt(java_to_python_bytes(request.json["block_id"]),private_key)
-#    AES_key = rsa_decrypt(java_to_python_bytes(request.json["AES_key"]),private_key)
-    
     print(username)
     print(password)  
     print("Block ID: %s"%block_id)
@@ -290,15 +281,15 @@ def register_user():
     r = requests.post("https://kyc-project.herokuapp.com/register_org", json = {"block_id":block_id})
     print(r.status_code)
     print(r.text)
-#    
-#    # received ENCRYPTED user data from kyc backend
+    
+    # received ENCRYPTED user data from kyc backend
     user_data = json.loads(r.text)
     print(type(user_data))
     user_data = user_data["userData"]
     del user_data["$class"]
     print(user_data)
-#   
-#    #decrpyt the user data with AES key
+   
+    #decrpyt the user data with AES key
     for key in user_data:
         print("decrypting %s now"%key)
         user_data[key] = aes_decrypt(user_data[key],AES_key)
@@ -323,19 +314,17 @@ def login_org():
         del received_request["request_id"]
     
     print(received_request)
+    
+    #decrypt the request received
+    decrypted = decrypt_request(request_id,received_request)
+    print(decrypted)
         
     
-#    #retrieve the private key from request_database
-#    str_private_key = get_private_key(request_id)
-#    private_key = RSA.import_key(str_private_key)
-#    
-    username = received_request["username"]
-    password = received_request["password"]
+    username = decrypted["username"]
+    password = decrypted["password"]
     
     print("username %s"%username)
     print("password %s"%password)
-#    rsa_decrypt(java_to_python_bytes(request.json["username"]),private_key)
-#    password = rsa_decrypt(java_to_python_bytes(request.json["password"]),private_key)
     
     can_login = check_for_login(username,password)
     if (can_login):

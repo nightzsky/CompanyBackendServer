@@ -157,7 +157,27 @@ def extract_user_from_database(username):
         print("User does not exist.")
     conn.close()
     return user_info
-            
+
+def check_for_login(username,password):
+    conn,cur = connect_db()
+    cur.execute("SELECT * FROM COMPANY_DATABASE")
+    rows = cur.fetchall()
+    can_login = False
+    for row in rows:
+        if (row[0] == username):
+            if (row[1] == password):
+                can_login = True
+            else:
+                can_login = False
+        else:
+            can_login = False
+    if (can_login == False):
+        print("Invalid username/password.")
+    else:
+        print("Welcome %s"%username)
+    
+    return can_login
+    
     
 def decrypt_request(request_id,json):
     private_key = get_private_key(request_id)
@@ -281,17 +301,24 @@ def register_user():
 @app.route("/login_org",methods = ['POST'])
 def login_org():
     request_id = request.json["request_id"]
-    username = request.json["username"]
-    if username in registered_user_database.keys():
-        resp = Response(json.dumps({"status":"success"}))
+    
+    #retrieve the private key from request_database
+    str_private_key = get_private_key(request_id)
+    private_key = RSA.import_key(str_private_key)
+    
+    username = rsa_decrypt(java_to_python_bytes(request.json["username"]),private_key)
+    password = rsa_decrypt(java_to_python_bytes(request.json["password"]),private_key)
+    
+    can_login = check_for_login(username,password)
+    if (can_login):
+        resp = Response(json.dumps({"Message":"Welcome %s"%username}))
         resp.status_code = 200
     else:
-        resp = Response(json.dumps({"status":"fail"}))
-        resp.status_code = 200
+        resp = Response(json.dumps({"Message":"Invalid username/password."}))
+        resp.status_code = 401
     print(resp)
-    
     return resp
-
+    
 @app.route("/display")
 def display():
     return jsonify(registered_user_database)

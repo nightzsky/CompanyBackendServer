@@ -142,6 +142,22 @@ def add_user_to_database(username,password,user_info):
                 VALUES (%s,%s,%s)",(username,password,json.dumps(user_info)))
     conn.commit()
     conn.close()
+
+#extract the user_info for respective user from database
+def extract_user_from_database(username):
+    conn,cur = connect_db()
+    cur.execute("SELECT * FROM COMPANY_DATABASE")
+    rows = cur.fetchall()
+    user_info = ""
+    for row in rows:
+        if (row[0] == username):
+            user_info = row[2]
+            print(user_info)
+    if (user_info == ""):
+        print("User does not exist.")
+    conn.close()
+    return user_info
+            
     
 def decrypt_request(request_id,json):
     private_key = get_private_key(request_id)

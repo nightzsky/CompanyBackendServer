@@ -251,6 +251,7 @@ def register_user():
     print(password)  
     print("Block ID: %s"%block_id)
     print("AES_key: %s"%AES_key)
+    print(type(AES_key))
     
     #post request to kyc backend to retrieve user block of info
     r = requests.post("https://kyc-project.herokuapp.com/register_org", json = {"block_id":block_id})
@@ -261,11 +262,12 @@ def register_user():
     user_data = json.loads(r.text)
     print(type(user_data))
     user_data = user_data["userData"]
-    
+    del user_data["$class"]
     print(user_data)
-#    
+#   
 #    #decrpyt the user data with AES key
     for key in user_data:
+        print("decrypting %s now"%key)
         if (key != "$class"):
             user_data[key] = aes_decrypt(user_data[key],AES_key)
     

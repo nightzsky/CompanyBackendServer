@@ -16,6 +16,8 @@ def aes_encrypt(data,key):
 
 #function which decrypts data using AES
 def aes_decrypt(data,key):
+    if type(key) != bytes:
+        key = bytes(ast.literal_eval(key))
     if type(data) != bytes:
         try:
             data = bytes(ast.literal_eval(data))
@@ -55,9 +57,7 @@ def rsa_decrypt(data, private_key):
     #first decrypt the session key using RSA
     if type(data[1] != bytes):
         data[1] = bytes(data[1])
-    print("encrypted session key: %s"%list(data[1]))
     session_key = cipher.decrypt(data[1])
-    print("session key: %s"%list(session_key))
     #then decrypt the data using AES and the session key
     return aes_decrypt(str(data[0]), session_key)
 
@@ -94,8 +94,11 @@ def merkle(data):
 def java_to_python_bytes(arr):
     arr = ast.literal_eval(arr)
     for i in range(len(arr)):
-        for j in range(len(arr[i])):    
-            arr[i][j] = arr[i][j]%256
+        if type(arr[i]) == list:
+            for j in range(len(arr[i])):    
+                arr[i][j] = arr[i][j]%256
+        else:
+            arr[i] = arr[i]%256
     return arr
 
 #Encrypts a http request to be sent to the backend servers using an RSA public key

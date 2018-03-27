@@ -14,21 +14,21 @@ import base64
 #    cipher = AES.new(key, AES.MODE_CFB,iv)
 #    return str(list((iv+cipher.encrypt(data))))
 #
-##function which decrypts data using AES
-#def aes_decrypt(data,key):
-#    if type(key) != bytes:
-#        key = bytes(ast.literal_eval(key))
-#    if type(data) != bytes:
-#        try:
-#            data = bytes(ast.literal_eval(data))
-#        except Exception as e:
-#            print(e)
-#            print("Error: could not interpret data for decryption")
-#            return
-#    iv = data[:16]
-#    cipher = AES.new(key, AES.MODE_CFB, iv)
-#    decrypted = cipher.decrypt(data[16:]).decode()
-#    return decrypted
+#function which decrypts data using AES
+def aes_decrypt(data,key):
+    if type(key) != bytes:
+        key = bytes(ast.literal_eval(key))
+    if type(data) != bytes:
+        try:
+            data = bytes(ast.literal_eval(data))
+        except Exception as e:
+            print(e)
+            print("Error: could not interpret data for decryption")
+            return
+    iv = data[:16]
+    cipher = AES.new(key, AES.MODE_CFB, iv)
+    decrypted = cipher.decrypt(data[16:]).decode()
+    return decrypted
 #
 ##function which encrypts data using RSA
 #def rsa_encrypt(data, public_key):
@@ -118,12 +118,12 @@ import base64
 #            encrypted[str(rsa_encrypt(i,pub_key))] = encrypt_request(req)
 #        encrypted[str(rsa_encrypt(i,pub_key))] = str(rsa_encrypt(req[i], pub_key))
 #    return encrypted
-from Crypto.Cipher import AES, PKCS1_OAEP
-from Crypto.PublicKey import RSA
-from Crypto.Hash import SHA256
-from Crypto import Random
-import ast
-import base64
+#from Crypto.Cipher import AES, PKCS1_OAEP
+#from Crypto.PublicKey import RSA
+#from Crypto.Hash import SHA256
+#from Crypto import Random
+#import ast
+#import base64
 
 #function which encrypts data using AES
 def aes_encrypt(data,key):
@@ -134,19 +134,6 @@ def aes_encrypt(data,key):
     cipher = AES.new(key, AES.MODE_CFB,iv)
     return str(list((iv+cipher.encrypt(data))))
 
-#function which decrypts data using AES
-def aes_decrypt(data,key):
-    if type(data) != bytes:
-        try:
-            data = bytes(ast.literal_eval(data))
-        except Exception as e:
-            print(e)
-            print("Error: could not interpret data for decryption")
-            return
-    iv = data[:16]
-    cipher = AES.new(key, AES.MODE_CFB, iv)
-    decrypted = cipher.decrypt(data[16:]).decode()
-    return decrypted
 
 #function which encrypts data using RSA
 def rsa_encrypt(data, public_key):

@@ -63,6 +63,7 @@ def get_private_key(request_id):
             private_key = row[1]
     if(private_key == ""):
         print("Invalid Request ID!")
+        return 'Invalid Request ID'
         
     conn.close()
     
@@ -143,6 +144,11 @@ def get_company_database():
 def decrypt_request(request_id,json):
     #retrieve the private key from request_database
     str_private_key = get_private_key(request_id)
+
+    #Handle case of invalid request id
+    if str_private_key == 'Invalid Request ID':
+        return 'Invalid Request ID'
+
     private_key = RSA.import_key(str_private_key)
     
     decrypted = {}
@@ -231,6 +237,13 @@ def register_user():
     
     #decrypt the request received
     decrypted = decrypt_request(request_id,received_request)
+
+    #Handle invalid request id
+    if decrypted == 'Invalid Request ID':
+        resp = Response(json.dumps({"Message":"Invalid request ID"}))
+        resp.status_code = 400
+        return resp
+
     print(decrypted)
     
     #decrypt the user request using private key

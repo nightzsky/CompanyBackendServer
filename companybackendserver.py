@@ -275,7 +275,7 @@ def register_user():
     AES_key = decrypted["AES_key"]
     
     if (check_if_username_exists(username) == True):
-        resp = Response(json.dumps({"Error","Username already exists!"}))
+        resp = Response(json.dumps({"Error":"Username already exists!"}))
         resp.status_code = 409 #conflict with the current state of resources
         return resp
     
@@ -306,7 +306,7 @@ def register_user():
         print(user_data)
         
         if(check_if_user_info_exists(user_data) == True):
-            resp = Response(json.dumps({"Error","You have already registered the company!"}))
+            resp = Response(json.dumps({"Error":"You have already registered the company!"}))
             resp.status_code = 409
             return resp
         else:    

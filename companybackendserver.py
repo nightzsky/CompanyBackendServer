@@ -68,6 +68,28 @@ def get_private_key(request_id):
     
     return private_key
 
+#for register org and login org for username detection
+def check_if_username_exists(username):
+    conn,cur,rows = select_db("USERNAME","COMPANY_DATABASE")
+    matching = False
+    for row in rows:
+        if (row[0] == username):
+            matching = True
+            
+    if (matching == True):
+        print("Username already exists!")
+    return matching
+
+def check_if_user_info_exists(user_info):
+    conn,cur,rows = select_db("USER_INFO","COMPANY_DATABASE")
+    exist = False
+    for row in rows:
+        if (row[0] == user_info):
+            exist = True
+    if (exist == True):
+        print("You have registered this company before.")
+    return exist
+
 #check if the user exists on the database
 def check_for_login(username,password):
     conn,cur,rows = select_db("*","COMPANY_DATABASE")
@@ -103,7 +125,7 @@ def add_user_to_database(username,password,user_info):
                 VALUES (%s,%s,%s)",(username,password,json.dumps(user_info)))
     conn.commit()
     conn.close()
-    
+
 #extract the user_info for respective user from database
 def extract_user_info(username):
     conn,cur,rows = select_db("*","COMPANT_DATABASE")
@@ -239,35 +261,45 @@ def register_user():
     block_id = decrypted["block_id"]
     AES_key = decrypted["AES_key"]
     
-    print(username)
-    print(password)  
-    print("Block ID: %s"%block_id)
-    print("AES_key: %s"%AES_key)
-    print(type(AES_key))
+    if (check_if_username_exists(username) == True):
+        resp = Response(json.dumps({"Error","Username already exists!"}))
+        resp.status_code = 409 #conflict with the current state of resources
+        return resp
     
-    #post request to kyc backend to retrieve user block of info
-    r = requests.post("https://kyc-project.herokuapp.com/register_org", json = {"block_id":block_id})
-    print(r.status_code)
-    print(r.text)
-    
-    # received ENCRYPTED user data from kyc backend
-    user_data = json.loads(r.text)
-    print(type(user_data))
-    user_data = user_data["userData"]
-    del user_data["$class"]
-    print(user_data)
-   
-    #decrpyt the user data with AES key
-    for key in user_data:
-        print("decrypting %s now"%key)
-        user_data[key] = aes_decrypt(user_data[key],AES_key)
-    
-    print(user_data)
-    
-    #post the user data to the company database along with password and username
-    add_user_to_database(username,password,user_data)
-    
-    return "Done"
+    else:
+        print(username)
+        print(password)  
+        print("Block ID: %s"%block_id)
+        print("AES_key: %s"%AES_key)
+        print(type(AES_key))
+        
+        #post request to kyc backend to retrieve user block of info
+        r = requests.post("https://kyc-project.herokuapp.com/register_org", json = {"block_id":block_id})
+        print(r.status_code)
+        print(r.text)
+        
+        # received ENCRYPTED user data from kyc backend
+        user_data = json.loads(r.text)
+        print(type(user_data))
+        user_data = user_data["userData"]
+        del user_data["$class"]
+        print(user_data)
+       
+        #decrpyt the user data with AES key
+        for key in user_data:
+            print("decrypting %s now"%key)
+            user_data[key] = aes_decrypt(user_data[key],AES_key)
+        
+        print(user_data)
+        
+        if(check_if_user_info_exists(user_data) == True):
+            resp = Response(json.dumps({"Error","You have already registered the company!"}))
+            resp.status_code = 409
+            return resp
+        else:    
+            #post the user data to the company database along with password and username
+            add_user_to_database(username,password,user_data)
+            return "Done"
 
 @app.route("/login_org",methods = ['POST'])
 def login_org():
@@ -295,6 +327,7 @@ def login_org():
     print("password %s"%password)
     
     can_login = check_for_login(username,password)
+    
     if (can_login):
         resp = Response(json.dumps({"Message":"Welcome %s"%username}))
         resp.status_code = 200
@@ -302,6 +335,7 @@ def login_org():
         resp = Response(json.dumps({"Message":"Invalid username/password."}))
         resp.status_code = 401
     print(resp)
+    
     return resp
     
 @app.route("/get_database_size", methods = ['GET'])

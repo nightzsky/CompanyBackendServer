@@ -140,6 +140,34 @@ def extract_user_info(username):
     conn.close()
     return user_info
 
+#delete user from company_database
+def del_user(username):
+    conn,cur = connect_db()
+    if (check_if_user_exists(username) == True):
+        cur.execute("DELETE from COMPANY_DATABASE where USERNAME = %s"%username)
+        cur.commit()
+        conn.close()
+        return "Deleted user %s"%username
+    else:
+        return "User does not exist."
+    
+#refresh the request_database
+def refresh_request_database():
+    conn,cur = connect_db()
+    #del the whole table
+    cur.execute("DROP TABLE REQUEST_DATABASE")
+    conn.commit()
+    #create the table again
+    cur.execute('''CREATE TABLE REQUEST_DATABASE 
+                (ID INT NOT NULL,
+                 PRIVATE_KEY TEXT NOT NULL);''')
+    conn.commit()
+    #refresh the counttable
+    cur.execute("UPDATE COUNTTABLE set COUNT = 0");
+    conn.commit()
+    conn.close()
+    
+
 #to view the request database with request id and corresponding public key stored
 @app.route("/get_request_database",methods = ['GET'])
 def get_request_database():
@@ -149,8 +177,6 @@ def get_request_database():
     response = jsonify(rows)
     response.headers['Access-Control-Allow-Origin'] = '*'
     return response
-
-
 
 #to view the company database, all the users info
 @app.route("/get_company_database",methods = ['GET'])
@@ -274,37 +300,38 @@ def register_user():
     block_id = decrypted["block_id"]
     AES_key = decrypted["AES_key"]
     
+    #if username already exist, don't allow the user to register
     if (check_if_username_exists(username) == True):
         resp = Response(json.dumps({"Error":"Username already exists!"}))
         resp.status_code = 409 #conflict with the current state of resources
         return resp
     
-    else:
-        print(username)
-        print(password)  
-        print("Block ID: %s"%block_id)
-        print("AES_key: %s"%AES_key)
-        print(type(AES_key))
+    print(username)
+    print(password)  
+    print("Block ID: %s"%block_id)
+    print("AES_key: %s"%AES_key)
+    print(type(AES_key))
         
-        #post request to kyc backend to retrieve user block of info
-        r = requests.post("https://kyc-project.herokuapp.com/register_org", json = {"block_id":block_id})
-        print(r.status_code)
-        print(r.text)
+    #post request to kyc backend to retrieve user block of info
+    r = requests.post("https://kyc-project.herokuapp.com/register_org", json = {"block_id":block_id})
+    print(r.status_code)
+    print(r.text)
         
+    if (r.status_code == 200): #if success in retrieving user info from kyc
         # received ENCRYPTED user data from kyc backend
         user_data = json.loads(r.text)
         print(type(user_data))
         user_data = user_data["userData"]
         del user_data["$class"]
         print(user_data)
-       
+           
         #decrpyt the user data with AES key
         for key in user_data:
             print("decrypting %s now"%key)
             user_data[key] = aes_decrypt(user_data[key],AES_key)
-        
+            
         print(user_data)
-        
+            
         if(check_if_user_info_exists(user_data) == True):
             resp = Response(json.dumps({"Error":"You have already registered the company!"}))
             resp.status_code = 409
@@ -313,6 +340,11 @@ def register_user():
             #post the user data to the company database along with password and username
             add_user_to_database(username,password,user_data)
             return "Done"
+        
+    else: #if fail to retrieve the user info
+        resp = Response(json.dumps(json.loads(r.text)))
+        resp.status_code = r.status_code
+        return resp
 
 @app.route("/login_org",methods = ['POST'])
 def login_org():

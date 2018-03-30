@@ -143,7 +143,7 @@ def extract_user_info(username):
 #delete user from company_database
 def del_user(username):
     conn,cur = connect_db()
-    if (check_if_user_exists(username) == True):
+    if (check_if_username_exists(username) == True):
         cur.execute("DELETE from COMPANY_DATABASE where USERNAME = %s"%username)
         cur.commit()
         conn.close()
@@ -156,7 +156,7 @@ def del_user(username):
 def company_del_user():
     username = request.args.get('username')
     conn,cur = connect_db()
-    if (check_if_user_exists(username) == True):
+    if (check_if_username_exists(username) == True):
         cur.execute("DELETE from COMPANY_DATABASE where USERNAME = %s"%username)
         cur.commit()
         conn.close()

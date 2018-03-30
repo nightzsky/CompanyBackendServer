@@ -169,7 +169,9 @@ def isValidUsername(username):
 @app.route("/company_del_user", methods = ['POST'])
 def company_del_user():
     username = request.args.get('username')
-    return del_user(username)
+    response = jsonify(del_user(username))
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    return response
     
 #refresh the request_database
 def refresh_request_database():

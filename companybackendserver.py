@@ -150,7 +150,8 @@ def del_user(username):
         conn.close()
         return "Deleted user %s"%username
     else:
-        return "User does not exist."
+        raise Exception("Could not find username.")
+        
 #check if valid username
 def isValidUsername(username):
     valid = False

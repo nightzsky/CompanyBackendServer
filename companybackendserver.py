@@ -143,7 +143,7 @@ def extract_user_info(username):
 #delete user from company_database
 def del_user(username):
     conn,cur = connect_db()
-    print("checking for user " + username)
+    print("checking for user " + str(username))
     if (check_if_username_exists(username) == True):
         cur.execute("DELETE from COMPANY_DATABASE where USERNAME = %s"%username)
         cur.commit()

@@ -151,7 +151,20 @@ def del_user(username):
         return "Deleted user %s"%username
     else:
         return "User does not exist."
+#check if valid username
+def isValidUsername(username):
+    valid = False
+    contains_weird_letter = False
+    for letter in username:
+        if letter in """!"#$%&()*+/:;<=>?@[\]^`{|}~""":
+            contains_weird_letter = True
     
+    if (not username.isspace() and not contains_weird_letter):
+        valid = True
+    else:
+        valid = False
+    return valid
+        
 #delete user from company_database: called by company frontend
 @app.route("/company_del_user", methods = ['POST'])
 def company_del_user():
@@ -306,6 +319,11 @@ def register_user():
     password = decrypted["password"]
     block_id = decrypted["block_id"]
     AES_key = decrypted["AES_key"]
+    
+    if (isValidUsername(username) == False):
+        resp = Response(json.dumps({"Error":"Invalid username!"}))
+        resp.status_code = 500
+        return resp
     
     #if username already exist, don't allow the user to register
     if (check_if_username_exists(username) == True):

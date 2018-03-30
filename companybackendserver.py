@@ -143,6 +143,7 @@ def extract_user_info(username):
 #delete user from company_database
 def del_user(username):
     conn,cur = connect_db()
+    print("checking for user " + username)
     if (check_if_username_exists(username) == True):
         cur.execute("DELETE from COMPANY_DATABASE where USERNAME = %s"%username)
         cur.commit()
@@ -155,14 +156,7 @@ def del_user(username):
 @app.route("/company_del_user", methods = ['POST'])
 def company_del_user():
     username = request.args.get('username')
-    conn,cur = connect_db()
-    if (check_if_username_exists(username) == True):
-        cur.execute("DELETE from COMPANY_DATABASE where USERNAME = %s"%username)
-        cur.commit()
-        conn.close()
-        return "Deleted user %s"%username
-    else:
-        return "User does not exist."
+    return del_user(username)
     
 #refresh the request_database
 def refresh_request_database():

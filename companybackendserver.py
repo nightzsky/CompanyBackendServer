@@ -129,7 +129,7 @@ def add_user_to_database(username,password,user_info):
 
 #extract the user_info for respective user from database
 def extract_user_info(username):
-    conn,cur,rows = select_db("*","COMPANT_DATABASE")
+    conn,cur,rows = select_db("*","COMPANY_DATABASE")
     user_info = ""
     for row in rows:
         if (row[0] == username):
@@ -145,7 +145,7 @@ def del_user(username):
     conn,cur = connect_db()
     print("checking for user " + str(username))
     if (check_if_username_exists(username) == True):
-        cur.execute("DELETE from COMPANY_DATABASE where USERNAME = %s"%username)
+        cur.execute("DELETE from COMPANY_DATABASE where USERNAME = '%s'"%username)
         cur.commit()
         conn.close()
         return "Deleted user %s"%username

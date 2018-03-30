@@ -146,7 +146,7 @@ def del_user(username):
     print("checking for user " + str(username))
     if (check_if_username_exists(username) == True):
         cur.execute("DELETE from COMPANY_DATABASE where USERNAME = '%s'"%username)
-        cur.commit()
+        conn.commit()
         conn.close()
         return "Deleted user %s"%username
     else:

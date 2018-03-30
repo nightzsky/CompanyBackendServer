@@ -141,6 +141,7 @@ def extract_user_info(username):
     return user_info
 
 #delete user from company_database
+@app.route("/del_user", methods = ['POST'])
 def del_user(username):
     conn,cur = connect_db()
     if (check_if_user_exists(username) == True):

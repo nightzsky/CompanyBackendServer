@@ -328,8 +328,8 @@ def register_user():
     AES_key = decrypted["AES_key"]
     
     if (isValidUsername(username) == False):
-        resp = Response(json.dumps({"Error":"Invalid username!"}))
-        resp.status_code = 500
+        resp = Response(json.dumps({"Error":"Username contains invalid characters"}))
+        resp.status_code = 400
         return resp
     
     #if username already exist, don't allow the user to register
@@ -365,7 +365,7 @@ def register_user():
         print(user_data)
             
         if(check_if_user_info_exists(user_data) == True):
-            resp = Response(json.dumps({"Error":"You have already registered the company!"}))
+            resp = Response(json.dumps({"Error":"You have already registered with this company!"}))
             resp.status_code = 409
             return resp
         else:    

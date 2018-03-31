@@ -105,9 +105,6 @@ def check_for_login(username,password):
             else:
                 print("bye")
                 can_login = False
-        else:
-            print("happy")
-            can_login = False
     if (can_login == False):
         print("nooo")
         print("Invalid username/password!")

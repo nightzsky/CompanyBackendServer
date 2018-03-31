@@ -88,7 +88,7 @@ def check_if_user_info_exists(user_info):
         if (row[0] == user_info):
             exist = True
     if (exist == True):
-        print("You have registered this company before.")
+        print("You have registered for this company before.")
     return exist
 
 #check if the user exists on the database
@@ -150,7 +150,8 @@ def del_user(username):
         conn.close()
         return "Deleted user %s"%username
     else:
-        raise Exception("Could not find username.")
+        conn.close()
+        return "User does not exist, delete failed"
         
 #check if valid username
 def isValidUsername(username):
@@ -170,7 +171,10 @@ def isValidUsername(username):
 @app.route("/company_del_user", methods = ['POST'])
 def company_del_user():
     username = request.args.get('username')
+    message = del_user(username)
     response = jsonify(del_user(username))
+    if message == 'User does not exist, delete failed':
+        response.status_code = 400
     response.headers['Access-Control-Allow-Origin'] = '*'
     return response
     

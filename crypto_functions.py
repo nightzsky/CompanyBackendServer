@@ -124,3 +124,12 @@ def encrypt_request(req, pub_key):
     return encrypted
 
 
+#verifies if a signature was created from a given raw data using the correct key
+def verify_signature(raw, signature, public_key):
+    hash_object = SHA256.new(data = bytes(raw, encoding = "utf-8"))
+    publicKey = RSA.import_key(public_key)
+    try:
+        pkcs1_15.new(publicKey).verify(hash_object, signature)
+        return True
+    except:
+        return False

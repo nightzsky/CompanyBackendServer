@@ -95,7 +95,7 @@ public class UserRegisterCompanyTest {
             str_pub_key = requestJson.get("public_key").toString();
             request_id = requestJson.get("request_id").toString();
             responseCode = UserRegisterCompany.registerCompany("user" + invalid + "name", "password", "7f4004c07d63cdc52e3a90a50b1a85a39d89c685dbae4e9dcc6705558487ddf2","[143, 143, 27, 59, 13, 30, 96, 133, 215, 218, 132, 228, 102, 72, 44, 142, 119, 251, 136, 78, 95, 248, 136, 198, 30, 187, 181, 159, 69, 143, 107, 37]",request_id,str_pub_key);
-            assertEquals(409, responseCode);
+            assertEquals(400, responseCode);
         }
     }
 }

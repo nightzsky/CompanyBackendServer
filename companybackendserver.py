@@ -160,7 +160,7 @@ def isValidUsername(username):
         if letter in """!"#$%&()*+/:;<=>?@[\]^`{|}~ """:
             contains_weird_letter = True
     
-    return !contains_weird_letter
+    return not contains_weird_letter
         
 #delete user from company_database: called by company frontend
 @app.route("/company_del_user", methods = ['POST'])

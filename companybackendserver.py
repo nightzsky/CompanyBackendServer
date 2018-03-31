@@ -97,7 +97,10 @@ def check_for_login(username,password):
     can_login = False
     for row in rows:
         if (row[0] == username):
+            print("hello")
+            print(row[0])
             if (row[1]==password):
+                print(row[1])
                 can_login = True
             else:
                 can_login = False

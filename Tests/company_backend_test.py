@@ -5,7 +5,7 @@ import psycopg2
 import json
 import ast
 
-DATABASE_URL = "postgres://kulppdlibhsggy:4655032868ea8a3c938e2bd5d015130b41c7810d012e8edc3518de8490bf205d@ec2-54-83-23-91.compute-1.amazonaws.com:5432/db5s1h8iuhepc"
+DATABASE_URL = "INSERT DATABASE URL HERE"
 
 #Connect to the postgresql database. returns the connection object and its cursor
 def connect_db():
@@ -86,7 +86,7 @@ class TestDatabase(unittest.TestCase):
 			delete_user(username)
 			self.assertEqual(user_info,extracted)
 
-# if __name__ == '__main__':
-# 	unittest.main()
+if __name__ == '__main__':
+	unittest.main()
 
-delete_user()
+

@@ -155,17 +155,12 @@ def del_user(username):
         
 #check if valid username
 def isValidUsername(username):
-    valid = False
     contains_weird_letter = False
     for letter in username:
-        if letter in """!"#$%&()*+/:;<=>?@[\]^`{|}~""":
+        if letter in """!"#$%&()*+/:;<=>?@[\]^`{|}~ """:
             contains_weird_letter = True
     
-    if (not username.isspace() and not contains_weird_letter):
-        valid = True
-    else:
-        valid = False
-    return valid
+    return !contains_weird_letter
         
 #delete user from company_database: called by company frontend
 @app.route("/company_del_user", methods = ['POST'])

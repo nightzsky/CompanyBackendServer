@@ -92,15 +92,18 @@ def check_if_user_info_exists(user_info):
     return exist
 
 #check if the user exists on the database
-def check_for_login(username,password):
+def check_for_login(username,password,encrypted_merkle_raw):
     conn,cur,rows = select_db("*","COMPANY_DATABASE")
     can_login = False
     for row in rows:
         if (row[0] == username):
             if (row[1]==password):
-                can_login = True
-            else:
-                can_login = False
+                user_public_key = row[2]["rsa_public_key"]
+                print(user_public_key)
+                decrypted_merkle_raw =rsa_decrypt(encrypted_merkle_raw,user_public_key)
+                if (decrypted_merkle_raw == row[2]["merkle_raw"]):
+                    can_login = True
+                    break
     if (can_login == False):
         print("Invalid username/password!")
     return can_login

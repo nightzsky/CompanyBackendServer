@@ -97,18 +97,12 @@ def check_for_login(username,password):
     can_login = False
     for row in rows:
         if (row[0] == username):
-            print("hello")
-            print(row[0])
             if (row[1]==password):
-                print(row[1])
                 can_login = True
             else:
-                print("bye")
                 can_login = False
     if (can_login == False):
-        print("nooo")
         print("Invalid username/password!")
-    print(can_login)
     return can_login
     
 #update the request id and private key to the database

@@ -101,8 +101,9 @@ def check_for_login(username,password,encrypted_merkle_raw):
                 user_public_key = row[2]["rsa_public_key"]
                 print(user_public_key)
                 if (verify_signature(row[2]["merkle_root"],encrypted_merkle_raw,user_public_key)):
+                    print(row[2]["merkle_root"])
                     can_login = True
-                    break
+                    return can_login
     if (can_login == False):
         print("Invalid username/password!")
     return can_login

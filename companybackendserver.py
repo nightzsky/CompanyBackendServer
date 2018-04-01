@@ -396,13 +396,13 @@ def login_org():
     
     username = decrypted["username"]
     password = decrypted["password"]
-    encrypted_merkle_raw = java_to_python_bytes(decrypted["merkle_raw"])
+    encrypted_merkle_raw = (decrypted["merkle_raw"]
     
     print("username %s"%username)
     print("password %s"%password)
     print("merkle_raw %s"%encrypted_merkle_raw)
     
-    can_login = check_for_login(username,password,encrypted_merkle_raw)
+    can_login = check_for_login(username,password,bytes(java_to_python_bytes(encrypted_merkle_raw)))
     
     if (can_login):
         resp = Response(json.dumps({"Message":"Welcome %s"%username}))

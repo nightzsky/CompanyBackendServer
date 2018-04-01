@@ -100,8 +100,7 @@ def check_for_login(username,password,encrypted_merkle_raw):
             if (row[1]==password):
                 user_public_key = row[2]["rsa_public_key"]
                 print(user_public_key)
-                decrypted_merkle_raw =rsa_decrypt(encrypted_merkle_raw,user_public_key)
-                if (decrypted_merkle_raw == row[2]["merkle_raw"]):
+                if (verify_signature(row[2]["merkle_raw"],encrypted_merkle_raw,user_public_key)):
                     can_login = True
                     break
     if (can_login == False):
@@ -395,7 +394,7 @@ def login_org():
     
     username = decrypted["username"]
     password = decrypted["password"]
-    encrypted_merkle_raw = decrypted["merkle_raw"]
+    encrypted_merkle_raw = java_to_python_bytes(decrypted["merkle_raw"])
     
     print("username %s"%username)
     print("password %s"%password)

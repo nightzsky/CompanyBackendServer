@@ -100,6 +100,7 @@ def check_for_login(username,password,encrypted_merkle_raw):
             if (row[1]==password):
                 user_public_key = row[2]["rsa_public_key"]
                 print(user_public_key)
+                print(row[2]["merkle_root"])
                 if (verify_signature(row[2]["merkle_root"],encrypted_merkle_raw,user_public_key)):
                     print(row[2]["merkle_root"])
                     can_login = True

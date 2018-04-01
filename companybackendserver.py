@@ -253,7 +253,7 @@ def get_key():
     print("Request ID is %s"%key_request_id)
     
     #company generates their own RSA key pairs
-    RSA_pvt_key = RSA.generate(2048)
+    RSA_pvt_key = RSA.generate(2048, pcks = 8)
     RSA_pub_key = RSA_pvt_key.publickey()
 
     #write key to the file then read the same file to obtain the key in plaintext

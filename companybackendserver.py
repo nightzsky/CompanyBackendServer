@@ -185,7 +185,7 @@ def staff_login():
     conn,cur,rows = select_db("*","COMPANY_LOGIN")
     response = "Wrong credentials or no such staff in the database."
     for entry in rows:
-        if (input_username == entry[0] && input_password == entry[1] && entry[2] != "true"):
+        if (input_username == entry[0] and input_password == entry[1] and entry[2] != "true"):
             response = "User " + input_username + " successfully logged in."
             response.status_code = 200
 

@@ -171,9 +171,25 @@ def isValidUsername(username):
 def company_del_user():
     username = request.args.get('username')
     message = del_user(username)
-    response = jsonify(del_user(username))
+    response = jsonify(message)
     if message == 'User does not exist, delete failed':
         response.status_code = 400
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    return response
+
+# checks if username and password exist and map in the sql
+@app.route("/staff_login", methods = ['POST'])
+def staff_login():
+    input_username = request.args.get('u')
+    input_password = request.args.get('p')
+    conn,cur,rows = select_db("*","COMPANY_LOGIN")
+    response = "Wrong credentials or no such staff in the database."
+    for entry in rows:
+        if (input_username == entry[0] && input_password == entry[1] && entry[2] != "true"):
+            response = "User " + input_username + " successfully logged in."
+            response.status_code = 200
+
+    response.status_code = 400
     response.headers['Access-Control-Allow-Origin'] = '*'
     return response
     

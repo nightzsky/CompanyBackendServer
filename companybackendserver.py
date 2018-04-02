@@ -186,7 +186,7 @@ def staff_login():
     response = jsonify("Wrong credentials or no such staff in the database.")
     for entry in rows:
         if (input_username == entry[0] and input_password == entry[1] and entry[2] != "true"):
-            cur.execute("UPDATE COMPANY_LOGIN SET LOGGED_IN = 'true' WHERE USERNAME = %s"%input_username)
+            cur.execute("UPDATE COMPANY_LOGIN SET LOGGED_IN = 'true' WHERE USERNAME = '%s'"%input_username)
             conn.commit()
             conn.close()
             response = jsonify("User " + input_username + " successfully logged in.")
@@ -204,7 +204,7 @@ def staff_logout():
     response = jsonify("Wrong credentials or no such staff in the database.")
     for entry in rows:
         if (input_username == entry[0] and entry[2] == "true"):
-            cur.execute("UPDATE COMPANY_LOGIN SET LOGGED_IN = 'false' WHERE USERNAME = %s"%input_username)
+            cur.execute("UPDATE COMPANY_LOGIN SET LOGGED_IN = 'false' WHERE USERNAME = '%s'"%input_username)
             response = jsonify("User " + input_username + " successfully logged out.")
             response.status_code = 200
 

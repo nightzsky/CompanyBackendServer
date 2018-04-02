@@ -182,6 +182,7 @@ def company_del_user():
 def staff_login():
     input_username = request.args.get('u')
     input_password = request.args.get('p')
+    print(input_username, input_password)
     conn,cur,rows = select_db("*","COMPANY_LOGIN")
     response = jsonify("Wrong credentials or no such staff in the database.")
     for entry in rows:
@@ -225,7 +226,6 @@ def get_request_database():
 def get_company_database():
     conn,cur,rows = select_db("*","COMPANY_DATABASE")
     print(rows)
-    print("hi")
     response = jsonify(rows)
     response.headers['Access-Control-Allow-Origin'] = '*'
     return response

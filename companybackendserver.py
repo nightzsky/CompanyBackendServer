@@ -182,18 +182,36 @@ def company_del_user():
 def staff_login():
     input_username = request.args.get('u')
     input_password = request.args.get('p')
-    print(input_username, input_password)
     conn,cur,rows = select_db("*","COMPANY_LOGIN")
     response = jsonify("Wrong credentials or no such staff in the database.")
     for entry in rows:
         if (input_username == entry[0] and input_password == entry[1] and entry[2] != "true"):
+            cur.execute("UPDATE COMPANY_LOGIN SET LOGGED_IN = 'true' WHERE USERNAME = %s"%input_username)
+            conn.commit()
+            conn.close()
             response = jsonify("User " + input_username + " successfully logged in.")
             response.status_code = 200
 
     response.status_code = 400
     response.headers['Access-Control-Allow-Origin'] = '*'
     return response
-    
+
+# logs out
+@app.route("/staff_logout", methods = ['POST'])
+def staff_login():
+    input_username = request.args.get('u')
+    conn,cur,rows = select_db("*","COMPANY_LOGIN")
+    response = jsonify("Wrong credentials or no such staff in the database.")
+    for entry in rows:
+        if (input_username == entry[0] and entry[2] == "true"):
+            cur.execute("UPDATE COMPANY_LOGIN SET LOGGED_IN = 'false' WHERE USERNAME = %s"%input_username)
+            response = jsonify("User " + input_username + " successfully logged out.")
+            response.status_code = 200
+
+    response.status_code = 400
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    return response
+
 #refresh the request_database
 def refresh_request_database():
     conn,cur = connect_db()

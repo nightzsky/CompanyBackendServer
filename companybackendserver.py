@@ -185,7 +185,6 @@ def staff_login():
     print("RECEIVED ARGUMENTS: " + input_username, input_password)
     conn,cur,rows = select_db("*","COMPANY_LOGIN")
     response = jsonify("Wrong credentials or no such staff in the database.")
-    response.status_code = 400
     for entry in rows:
         if (input_username == entry[0] and input_password == entry[1] and entry[2] != "true"):
             cur.execute("UPDATE COMPANY_LOGIN SET LOGGED_IN = 'true' WHERE USERNAME = '%s'"%input_username)
@@ -193,6 +192,9 @@ def staff_login():
             conn.close()
             response = jsonify("User " + input_username + " successfully logged in.")
             response.status_code = 200
+            response.headers['Access-Control-Allow-Origin'] = '*'
+            return response
+    response.status_code = 400
     response.headers['Access-Control-Allow-Origin'] = '*'
     return response
 
@@ -203,7 +205,6 @@ def staff_logout():
     print("RECEIVED ARGUMENT: " + input_username)
     conn,cur,rows = select_db("*","COMPANY_LOGIN")
     response = jsonify("Wrong credentials or no such staff in the database.")
-    response.status_code = 400
     for entry in rows:
         if (input_username == entry[0] and entry[2] == "true"):
             cur.execute("UPDATE COMPANY_LOGIN SET LOGGED_IN = 'false' WHERE USERNAME = '%s'"%input_username)
@@ -211,6 +212,9 @@ def staff_logout():
             conn.close()
             response = jsonify("User " + input_username + " successfully logged out.")
             response.status_code = 200
+            response.headers['Access-Control-Allow-Origin'] = '*'
+            return response
+    response.status_code = 400
     response.headers['Access-Control-Allow-Origin'] = '*'
     return response
 

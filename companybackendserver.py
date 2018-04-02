@@ -205,6 +205,8 @@ def staff_logout():
     for entry in rows:
         if (input_username == entry[0] and entry[2] == "true"):
             cur.execute("UPDATE COMPANY_LOGIN SET LOGGED_IN = 'false' WHERE USERNAME = '%s'"%input_username)
+            conn.commit()
+            conn.close()
             response = jsonify("User " + input_username + " successfully logged out.")
             response.status_code = 200
 

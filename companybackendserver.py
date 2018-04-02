@@ -182,6 +182,7 @@ def company_del_user():
 def staff_login():
     input_username = request.args.get('u')
     input_password = request.args.get('p')
+    print("RECEIVED ARGUMENTS: " + input_username, input_password)
     conn,cur,rows = select_db("*","COMPANY_LOGIN")
     response = jsonify("Wrong credentials or no such staff in the database.")
     for entry in rows:
@@ -200,6 +201,7 @@ def staff_login():
 @app.route("/staff_logout", methods = ['POST'])
 def staff_logout():
     input_username = request.args.get('u')
+    print("RECEIVED ARGUMENT: " + input_username)
     conn,cur,rows = select_db("*","COMPANY_LOGIN")
     response = jsonify("Wrong credentials or no such staff in the database.")
     for entry in rows:

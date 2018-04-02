@@ -198,7 +198,7 @@ def staff_login():
 
 # logs out
 @app.route("/staff_logout", methods = ['POST'])
-def staff_login():
+def staff_logout():
     input_username = request.args.get('u')
     conn,cur,rows = select_db("*","COMPANY_LOGIN")
     response = jsonify("Wrong credentials or no such staff in the database.")

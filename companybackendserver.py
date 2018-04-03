@@ -29,12 +29,9 @@ def check_auth(username, password):
 def authenticate():
     print("in authenticate()")
     message = {'message':"Authenticate."}
-    
     resp = jsonify(message)
     resp.status_code = 401
     resp.headers['WWW-Authenticate'] = 'Basic realm = "Example"'
-    resp.headers['Access-Control-Allow-Origin'] = '*'
-
     return resp
 
 def requires_auth(f):
@@ -51,7 +48,7 @@ def requires_auth(f):
             print("wrong auth")
             return authenticate()
         return f(*args, **kwargs)
-    
+    print("decorated: " + decorated)
     return decorated
 
 #Connect to the postgresql database. returns the connection object and its cursor
@@ -302,6 +299,7 @@ def get_request_database():
 #to view the company database, all the users info
 @app.route("/get_company_database",methods = ['GET'])
 @requires_auth
+@crossdomain(origin='*')
 def get_company_database():
     print("in get_company_database()")
     conn,cur,rows = select_db("*","COMPANY_DATABASE")

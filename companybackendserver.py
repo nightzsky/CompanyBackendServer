@@ -27,6 +27,7 @@ def check_auth(username, password):
     return False
 
 def authenticate():
+    print("in authenticate()")
     message = {'message':"Authenticate."}
     
     resp = jsonify(message)
@@ -37,8 +38,10 @@ def authenticate():
     return resp
 
 def requires_auth(f):
+    print("in requires_auth()")
     @wraps(f)
     def decorated(*args,**kwargs):
+        print("in decorated()")
         auth = request.authorization
         if not auth:
             print("not auth")
@@ -300,6 +303,7 @@ def get_request_database():
 @app.route("/get_company_database",methods = ['GET'])
 @requires_auth
 def get_company_database():
+    print("in get_company_database()")
     conn,cur,rows = select_db("*","COMPANY_DATABASE")
     print(rows)
     response = jsonify(rows)

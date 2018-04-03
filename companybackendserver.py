@@ -20,7 +20,11 @@ app = Flask(__name__)
 mutex = threading.Lock()
 
 def check_auth(username, password):
-    return username == 'admin' and password == 'secret'
+    conn,cur,rows = select_db("*","COMPANY_LOGIN")
+    for row in rows:
+        if (username == row[0] and password == row[1] and row[2] == 'true'):
+            return True
+    return False
 
 def authenticate():
     message = {'message':"Authenticate."}

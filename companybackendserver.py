@@ -194,7 +194,6 @@ def isValidUsername(username):
         
 #delete user from company_database: called by company frontend
 @app.route("/company_del_user", methods = ['POST'])
-@requires_auth
 def company_del_user():
     username = request.args.get('username')
     message = del_user(username)
@@ -381,7 +380,6 @@ def get_key():
     return jsonify(for_user)
 
 @app.route("/register_user", methods = ['POST'])
-@requires_auth
 def register_user():
     received_request = request.json
     print(received_request)
@@ -474,7 +472,6 @@ def register_user():
         return resp
 
 @app.route("/login_org",methods = ['POST'])
-@requires_auth
 def login_org():
     received_request = request.json
     print(received_request)

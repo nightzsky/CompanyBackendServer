@@ -127,6 +127,8 @@ def encrypt_request(req, pub_key):
 #verifies if a signature was created from a given raw data using the correct key
 def verify_signature(raw, signature, public_key):
     hash_object = SHA256.new(data = bytes(raw, encoding = "utf-8"))
+#    print(type(raw))
+#    print(type(signature))
     print(hash_object)
     publicKey = RSA.import_key(public_key)
     try:

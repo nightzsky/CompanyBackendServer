@@ -32,7 +32,8 @@ def authenticate():
     resp = jsonify(message)
     resp.status_code = 401
     resp.headers['WWW-Authenticate'] = 'Basic realm = "Example"'
-    
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+
     return resp
 
 def requires_auth(f):

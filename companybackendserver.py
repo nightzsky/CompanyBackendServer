@@ -48,7 +48,6 @@ def requires_auth(f):
             print("wrong auth")
             return authenticate()
         return f(*args, **kwargs)
-    print("decorated: " + decorated)
     return decorated
 
 #Connect to the postgresql database. returns the connection object and its cursor

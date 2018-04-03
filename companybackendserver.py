@@ -337,7 +337,7 @@ def get_request_database():
     return response
 
 #to view the company database, all the users info
-@app.route("/get_company_database",methods = ['GET'])
+@app.route("/get_company_database",methods = ['GET','OPTIONS'])
 @crossdomain(origin='*') 
 @requires_auth
 def get_company_database():

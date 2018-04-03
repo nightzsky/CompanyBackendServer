@@ -1,5 +1,12 @@
 import org.json.JSONObject;
 import org.junit.Test;
+
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+
 import static org.junit.Assert.*;
 
 /**
@@ -8,6 +15,73 @@ import static org.junit.Assert.*;
  * Users are deleted immediately after they are added
  */
 public class UserRegisterCompanyTest {
+    //function which revokes or reactivates the token of a specified user, used for tests later
+    static int revokeToken(String blockId){
+        HttpURLConnection urlConnection = null;
+
+        try {
+            URL url = new URL("https://kyc-project.herokuapp.com/token_lost");
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("block_id", blockId);
+
+            JSONObject encryptedJSON = EncryptRequest.encryptRequest(jsonObject);
+
+            urlConnection = (HttpURLConnection) url.openConnection();
+            //set the request method to Post
+            urlConnection.setRequestMethod("POST");
+            urlConnection.setRequestProperty("Content-Type","application/json");
+            urlConnection.setDoInput(true);
+            urlConnection.setDoOutput(true);
+
+
+            //output the stream to the server
+            OutputStreamWriter wr = new OutputStreamWriter(urlConnection.
+                    getOutputStream());
+            wr.write(encryptedJSON.toString());
+            wr.flush();
+
+            int responseCode = urlConnection.getResponseCode();
+            return responseCode;
+        }catch (Exception ex){
+            ex.printStackTrace();
+            return 0;
+        }
+    }
+    static int reactivateToken(String blockId){
+        HttpURLConnection urlConnection = null;
+
+        try {
+            URL url = new URL("https://kyc-project.herokuapp.com/token_found");
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("block_id", blockId);
+
+            JSONObject encryptedJSON = EncryptRequest.encryptRequest(jsonObject);
+
+            urlConnection = (HttpURLConnection) url.openConnection();
+            //set the request method to Post
+            urlConnection.setRequestMethod("POST");
+            urlConnection.setRequestProperty("Content-Type","application/json");
+            String encoded = Base64.getEncoder().encodeToString(("admin"+":"+"secret").getBytes(StandardCharsets.UTF_8));  //Java 8
+            urlConnection.setRequestProperty("Authorization", "Basic "+encoded);
+            urlConnection.setDoInput(true);
+            urlConnection.setDoOutput(true);
+            urlConnection.setDoInput(true);
+            urlConnection.setDoOutput(true);
+
+
+            //output the stream to the server
+            OutputStreamWriter wr = new OutputStreamWriter(urlConnection.
+                    getOutputStream());
+            wr.write(encryptedJSON.toString());
+            wr.flush();
+
+            int responseCode = urlConnection.getResponseCode();
+            return responseCode;
+        }catch (Exception ex){
+            ex.printStackTrace();
+            return 0;
+        }
+    }
     @Test
     public void testCorrectRegistration(){
         String request_and_key = UserRegisterCompany.httpGet("https://shielded-bayou-99151.herokuapp.com/get_key");
@@ -96,6 +170,28 @@ public class UserRegisterCompanyTest {
             request_id = requestJson.get("request_id").toString();
             responseCode = UserRegisterCompany.registerCompany("user" + invalid + "name", "password", "7f4004c07d63cdc52e3a90a50b1a85a39d89c685dbae4e9dcc6705558487ddf2","[143, 143, 27, 59, 13, 30, 96, 133, 215, 218, 132, 228, 102, 72, 44, 142, 119, 251, 136, 78, 95, 248, 136, 198, 30, 187, 181, 159, 69, 143, 107, 37]",request_id,str_pub_key);
             assertEquals(400, responseCode);
+        }
+    }
+
+    //Test which ensures that a revoked token cannot be used to register for a company
+    @Test
+    public void testRevokeTokenRegistrationDenied(){
+        int responseCode = revokeToken("04d2a86fdff20c15dd4e16435ee643b194ea6e928ef4fe4695f1464977142646");
+        //ensure token revocation is successful
+        assertEquals(200,responseCode);
+        String request_and_key = UserRegisterCompany.httpGet("https://shielded-bayou-99151.herokuapp.com/get_key");
+
+        //convert into jsonObject
+        JSONObject requestJson = new JSONObject(request_and_key);
+        String str_pub_key = requestJson.get("public_key").toString();
+        String request_id = requestJson.get("request_id").toString();
+
+        responseCode = UserRegisterCompany.registerCompany("username", "password", "04d2a86fdff20c15dd4e16435ee643b194ea6e928ef4fe4695f1464977142646","[89, 247, 59, 84, 13, 113, 250, 217, 152, 163, 247, 100, 154, 9, 42, 124, 138, 38, 86, 33, 17, 219, 40, 105, 135, 8, 140, 14, 54, 210, 100, 130]",request_id,str_pub_key);
+        try {
+            assertEquals(400, responseCode);
+        }
+        finally{
+            reactivateToken("04d2a86fdff20c15dd4e16435ee643b194ea6e928ef4fe4695f1464977142646");
         }
     }
 }

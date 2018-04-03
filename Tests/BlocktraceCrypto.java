@@ -149,6 +149,24 @@ public class BlocktraceCrypto {
 
     }
 
+    /**
+     * Generates a digital signature from the given data and private key
+     */
+    public static byte[] sign(String inp, byte[] privateKey){
+        byte[] inpBytes = inp.getBytes(StandardCharsets.UTF_8);
+        try {
+            PrivateKey key = KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(privateKey));
+            Signature signer = Signature.getInstance("SHA256withRSA");
+            signer.initSign(key);
+            signer.update(inpBytes);
+            return signer.sign();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     public static void main(String[] args) {
         SecureRandom sr = new SecureRandom();
         byte[] keyBytes = new byte[16];
@@ -159,13 +177,14 @@ public class BlocktraceCrypto {
 //            System.out.print(keyBytes[i] + ", ");
 //        }
 //        System.out.println("]");
-//        String pubKey = "-----BEGIN PUBLIC KEY-----MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsuvd81pnoS599N4uOCLK1wQ+5ela2WLJ1ZFCYkv6fzZUoyVwGgBM/7N37/gfqOBV3OjHCKMgShhVL+pfh87hRKttPqrqbJAcd4Gbpyd0SnPfOiWyEpYxEgtZ6vdJLGU2NTAGT+1u64ZXe6NGsaL+bJj7rMalI4/3H9AFn2Yzq4di5PTV5gFYisjXGQ9SzR+dqptELVAkcUYPulY6P4GnjkQnahoVwYoE6CSSZmAm5vUaxbJYBiyWT3JMnSP6dTeHTdEkDE/kGuyp2XzHLb/jT2m+pT2V13YKGfzz2kZrTO3Z2WTGWEfBbPCM5zaRnOQdc63CCHit/qC7YzHjk0wD3wIDAQAB-----END PUBLIC KEY-----";
+        String pubKey = "-----BEGIN PUBLIC KEY-----MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsuvd81pnoS599N4uOCLK1wQ+5ela2WLJ1ZFCYkv6fzZUoyVwGgBM/7N37/gfqOBV3OjHCKMgShhVL+pfh87hRKttPqrqbJAcd4Gbpyd0SnPfOiWyEpYxEgtZ6vdJLGU2NTAGT+1u64ZXe6NGsaL+bJj7rMalI4/3H9AFn2Yzq4di5PTV5gFYisjXGQ9SzR+dqptELVAkcUYPulY6P4GnjkQnahoVwYoE6CSSZmAm5vUaxbJYBiyWT3JMnSP6dTeHTdEkDE/kGuyp2XzHLb/jT2m+pT2V13YKGfzz2kZrTO3Z2WTGWEfBbPCM5zaRnOQdc63CCHit/qC7YzHjk0wD3wIDAQAB-----END PUBLIC KEY-----";
 //
-//        String pvtKey = "-----BEGIN PRIVATE KEY-----MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCy693zWmehLn303i44IsrXBD7l6VrZYsnVkUJiS/p/NlSjJXAaAEz/s3fv+B+o4FXc6McIoyBKGFUv6l+HzuFEq20+qupskBx3gZunJ3RKc986JbISljESC1nq90ksZTY1MAZP7W7rhld7o0axov5smPusxqUjj/cf0AWfZjOrh2Lk9NXmAViKyNcZD1LNH52qm0QtUCRxRg+6Vjo/gaeORCdqGhXBigToJJJmYCbm9RrFslgGLJZPckydI/p1N4dN0SQMT+Qa7KnZfMctv+NPab6lPZXXdgoZ/PPaRmtM7dnZZMZYR8Fs8IznNpGc5B1zrcIIeK3+oLtjMeOTTAPfAgMBAAECggEABRnlc5U9xCIrtCoLfk07pEK6OlrbXLxMzdp83omVBEB7zET6e7tLdrTatAxKdsmimRBH8G6aMpKcBygy/g+/a3JJxJIh6eN39E5NLkhZL/A6ypEdkRsYHhAVybWwL+RY1c5fN7MoyO1FHEDM+K6Re24nKsdlGOz3WkBXkLJcwcSnroqsuNZE9JC3Wrgvh/FBAsKhLmwCWwfzZ5oWZEVDAfkDEMne0Kqk8vEXr5iRWV+o+XpS2VuNquSORZjYz4JyGaBggNrXTrL0xRJ4iqIX0/Vxz+29e24zTq4jsWeGNGOxHuYE06Wyg3VRFJP2VUrYByeCZ89j3juTxEEgBDLktQKBgQDOlw/CpWv0kX7tBusd10poHcZJ10DTuFMsb5vJ+IxAY4jJeYZbVegly5FyLyJ5bH7GxWOlZDeg3s88KFGmCTQcPPgHxwlPRD97V4Ryj7y57SFmcBhnGqq/tgI60nDLBb3LmCGqcplOac35GPa9P0mEC5Y85Ev6y98kEhVkF+kylQKBgQDdtrnQHdpnFEF/1Gno5zPR3+iCcmT52orWv5jw4QDfojNP/gM9Hwzb8tmZX7Eu5AaeYLhsZBxp54eSUbswImef8O2k1gvZ4qDsd0AbeHQhXKC/DLh6jFYvNfOvKPXx8mTNcAgHDJaoA10ko0qYzPenCgfTDiTvQnN/FuXLaKDTowKBgCv8mgx1sFC4ke/h4znNVzhn7opWXKU3v+3cLa2JUEN9beiICYV0+yLg/yzywEJeSXgFGzxh5D5KcpF6fDgACaphiOYPCPppq6KVdcv2stZbmRr4jxmU4fpDxKHFoOJ5bHnnAHQMRnwdpw98szyENyD4XprEeTEDK5XAi/Ft7ecpAoGASQhr5NYwn0vY15bM3F9sfnHXUUEFahhHK74pTw+PDhuL84mk33le7wTsEM2ou915IKqTlYDUqz4NNnGdy5lJsTHX1jh75uX0RHBzuZjQCD1O5h/2lMetjBelkclYWr6R3epNeqT265lQEUWIyRSbb3aqZSd/myC0kuSkBYENmSkCgYB2pjxzxPAEfTU3Fi0q58vbrd4IFfcw0d55WBzwdAwYLHVmHDO+4eUtqz+FnQO+TmzQQcJl434KVaGoA5bedUiMC2dS0LAFv0XvMxZ/frGI5RK6yNRa3RyeqQlQnqr48/3nNyjQkQ9iOiPKP8KX88RHu4SPPL0QAz8MSJvGk0U6kA==-----END PRIVATE KEY-----";
+        String pvtKey = "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC/EQVuXbRRIrCQ\n7uDu82SuLiHRdVTG1AtDQakC2h2C7Pk5Jw6tnSwTC9CDFw6fne2lEHE5BiqYdE+c\nxYYIvQgSm8zt9ejMAbL8oFyPX9dJvKIbnUok7JkwIGemNwFw7zlnSWu+UR824uqk\nM063jP82sJqmckqLeJZ9N1frfvEd9/yxWTOm3LbmV04oQfNpgDrluLduxarRe+a5\neAhskvWEpN3Ceh0gQx1kiS277I7GxKIYsAum4G2AU4l8JgK0wH1TqVJUKOJjFtNe\nJ5XGVdLXOQSv7RBF5Z3uxpgTc3NfCjD6Woclnpvs+hhoPY0/Pa8o6UsholpbUFel\nxY94YXIVAgMBAAECggEAHKRwFH3umJUjM+7jgF6zUpsuzagRp+bEs3Xl4LwS3Xwp\n1kQBIsyjfU1xmh08P3hc1jhTSNGgVA9nmeBQegHgcm2xuGB7YA3HJ7Dgf0vGSdMB\n2DLpmQRw6HKLJzMqv6PVDqNGiBbAH6m/tBLO85wq7CdoX5hVjXfr02SXBQIYIj42\naa9zJLlOp5o+1EGD447+M9viB1FxoCmnAB/ZWBcECz9J4Z21mJa/Hqi7UnPHuc3z\ndoR4zY8Tqm0sKjtzOMVj399t/PvrBbmmMrfX6luONQUQr/P5tW++HB9EjigU44mE\n8Cj5hr+jXqYJtk7X/CylLqjvMketUzVLo5k18i7QVwKBgQDDDxdwJN3nkEWwQX6F\nrkMrxlmELsQeVaw34qJfAhtL1QkR62a0CvltK6XndyOSIM+DEoO1+jhmy0P1eMd6\nBILHolZa8FrTz+JDq5pUH0VMcuwv53UHi0NQ8DkNe5QCDdQRj7wLMQduJqZyxI8d\nEv2QF6cYyRpZ9qy2KgyDzj78XwKBgQD6wpxROpzWbRfR+hbE53lPTjh+uELgOqJ7\neRjt9hK2ndeEKLKuI+j7+SfOQcktfZBnGXUQtoWtQ/ac5rQHdul9HYuRA1Ewrig5\npYxQngX/AlShRG6pi0NYw0M/VCV1GwBn/pMhoo7Ps0tWn+bRjGyyNH+ADmAeO1J6\nsyM6WVmmCwKBgB8Wb6ja51b5onG17oFFxcTbRvcPMQiYpOr/PtufjVQnrtthRiwZ\nt6kTlMxwK4Ylno0ITV+acpTHfpxH1Jr4zxMcJ2E0/3TUo/4fAmi31yaZBlWYMQmz\nw1XKA33HnU46f/sQimrKNKH0nQCbnSeIGEt3yZTksEN4UgxyZS44l8dHAoGBAMF2\nV6eLsujz7cbATcTIWR1IWenaOy5Hzoe4W/VrPfDKQjXiOEiFyABur7k/o/iGwVvp\nlhm419Vfc+qFSyvfIDC5FK5igsct9jbTdDfWUwX1RFnPNBl2KhVXQJChWOzKUjvp\nepYellPEHkHMyAWvc0Thn+SqMpngZrfncSxZNwMVAoGAXhzFfH2DaOaRbKOPOyUT\nwWhHCTWVE3SWvhpzo2VUf0CayoMLqxWbzCR0VmR4tmjMgzYtIUG3jivmQS5ZbEiC\n7iOnzKvDt2MViBG/Lwks9kocmxBjXowJlrvdcCbxnGxiScCP/2P54fDhr87lbIUb\n1bSwhBdSZMBmMDTDUiAMeQY=\n-----END PRIVATE KEY-----";
 //        byte[][] cipherText = rsaEncrypt("Hello World", pemToBytes(pubKey));
 //        System.out.println("Printing ciphertext");
 //        System.out.println(Arrays.deepToString(cipherText));
-        System.out.println(hash256("Hello World"));
+        String signature = Arrays.toString(sign("846796410f5f108a7c1fb71abf0c5bdce6f45836f1dac54f7e7dab428121ffbb",pemToBytes(pvtKey)));
+        System.out.println(signature);
 
 
 

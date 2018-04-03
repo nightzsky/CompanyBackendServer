@@ -18,6 +18,31 @@ app = Flask(__name__)
 
 mutex = threading.Lock()
 
+def check_auth(username, password):
+    return username == 'admin' and password == 'secret'
+
+def authenticate():
+    message = {'message':"Authenticate."}
+    
+    resp = jsonify(message)
+    resp.status_code = 401
+    resp.headers['WWW-Authenticate'] = 'Basic realm = "Example"'
+    
+    return resp
+
+def requires_auth(f):
+    @wraps(f)
+    def decorated(*args,**kwargs):
+        auth = request.authorization
+        if not auth:
+            return authenticate()
+        
+        elif not check_auth(auth.username, auth.password):
+            return authenticate()
+        return f(*args, **kwargs)
+    
+    return decorated
+
 #Connect to the postgresql database. returns the connection object and its cursor
 def connect_db():
     conn = psycopg2.connect(os.environ['DATABASE_URL'], sslmode = 'require')
@@ -168,6 +193,7 @@ def isValidUsername(username):
         
 #delete user from company_database: called by company frontend
 @app.route("/company_del_user", methods = ['POST'])
+@requires_auth
 def company_del_user():
     username = request.args.get('username')
     message = del_user(username)
@@ -254,6 +280,7 @@ def refresh_request_database():
 
 #to view the request database with request id and corresponding public key stored
 @app.route("/get_request_database",methods = ['GET'])
+@requires_auth
 def get_request_database():
     conn,cur,rows = select_db("*","REQUEST_DATABASE")
     print(rows)
@@ -264,6 +291,7 @@ def get_request_database():
 
 #to view the company database, all the users info
 @app.route("/get_company_database",methods = ['GET'])
+@requires_auth
 def get_company_database():
     conn,cur,rows = select_db("*","COMPANY_DATABASE")
     print(rows)
@@ -352,6 +380,7 @@ def get_key():
     return jsonify(for_user)
 
 @app.route("/register_user", methods = ['POST'])
+@requires_auth
 def register_user():
     received_request = request.json
     print(received_request)
@@ -444,6 +473,7 @@ def register_user():
         return resp
 
 @app.route("/login_org",methods = ['POST'])
+@requires_auth
 def login_org():
     received_request = request.json
     print(received_request)

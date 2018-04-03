@@ -92,7 +92,7 @@ def check_if_user_info_exists(user_info):
     return exist
 
 #check if the user exists on the database
-def check_for_login(username,password,encrypted_merkle_raw,block_id):
+def check_for_login(username,password,encrypted_merkle_raw):
     conn,cur,rows = select_db("*","COMPANY_DATABASE")
     can_login = False
     for row in rows:
@@ -171,12 +171,70 @@ def isValidUsername(username):
 def company_del_user():
     username = request.args.get('username')
     message = del_user(username)
-    response = jsonify(del_user(username))
+    response = jsonify(message)
     if message == 'User does not exist, delete failed':
         response.status_code = 400
     response.headers['Access-Control-Allow-Origin'] = '*'
     return response
-    
+
+# checks if username and password exist and map in the sql
+@app.route("/staff_login", methods = ['POST'])
+def staff_login():
+    input_username = request.args.get('u')
+    input_password = request.args.get('p')
+    print("RECEIVED ARGUMENTS: " + input_username, input_password)
+    conn,cur,rows = select_db("*","COMPANY_LOGIN")
+    response = jsonify("Wrong credentials or no such staff in the database.")
+    for entry in rows:
+        if (input_username == entry[0] and input_password == entry[1] and entry[2] != "true"):
+            cur.execute("UPDATE COMPANY_LOGIN SET LOGGED_IN = 'true' WHERE USERNAME = '%s'"%input_username)
+            conn.commit()
+            conn.close()
+            response = jsonify("User " + input_username + " successfully logged in.")
+            response.status_code = 200
+            response.headers['Access-Control-Allow-Origin'] = '*'
+            return response
+    response.status_code = 400
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    return response
+
+# logs out
+@app.route("/staff_logout", methods = ['POST'])
+def staff_logout():
+    input_username = request.args.get('u')
+    print("RECEIVED ARGUMENT: " + input_username)
+    conn,cur,rows = select_db("*","COMPANY_LOGIN")
+    response = jsonify("Wrong credentials or no such staff in the database.")
+    for entry in rows:
+        if (input_username == entry[0] and entry[2] == "true"):
+            cur.execute("UPDATE COMPANY_LOGIN SET LOGGED_IN = 'false' WHERE USERNAME = '%s'"%input_username)
+            conn.commit()
+            conn.close()
+            response = jsonify("User " + input_username + " successfully logged out.")
+            response.status_code = 200
+            response.headers['Access-Control-Allow-Origin'] = '*'
+            return response
+    response.status_code = 400
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    return response
+
+# logs out
+@app.route("/is_staff_logged_in", methods = ['POST'])
+def is_staff_logged_in():
+    input_username = request.args.get('u')
+    print("RECEIVED ARGUMENT: " + input_username)
+    conn,cur,rows = select_db("*","COMPANY_LOGIN")
+    response = jsonify("Wrong credentials or no such staff in the database.")
+    for entry in rows:
+        if (input_username == entry[0]):
+            response = jsonify(entry[2]);
+            response.status_code = 200
+            response.headers['Access-Control-Allow-Origin'] = '*'
+            return response
+    response.status_code = 400
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    return response
+
 #refresh the request_database
 def refresh_request_database():
     conn,cur = connect_db()
@@ -209,7 +267,6 @@ def get_request_database():
 def get_company_database():
     conn,cur,rows = select_db("*","COMPANY_DATABASE")
     print(rows)
-    print("hi")
     response = jsonify(rows)
     response.headers['Access-Control-Allow-Origin'] = '*'
     return response
@@ -326,15 +383,6 @@ def register_user():
     block_id = decrypted["block_id"]
     AES_key = decrypted["AES_key"]
     
-#    #post request to kyc backend to retrieve user block of info
-#    r = requests.post("https://kyc-project.herokuapp.com/register_org", json = {"block_id":block_id})
-#    data_received = json.loads(r.text)
-#    can_access = data_received["access"]
-#    if not can_access:
-#        resp = Response(json.dumps({"Error":"This user is disabled"}))
-#        resp.status_code = 400
-#        return resp
-    
     if (isValidUsername(username) == False):
         resp = Response(json.dumps({"Error":"Username contains invalid characters"}))
         resp.status_code = 400
@@ -360,33 +408,26 @@ def register_user():
     if (r.status_code == 200): #if success in retrieving user info from kyc
         # received ENCRYPTED user data from kyc backend
         user_data = json.loads(r.text)
-        can_access = user_data["access"]
-        # check if the user got report lost of token
-        if (can_access):      
-            print(type(user_data))
-            user_data = user_data["userData"]
-            del user_data["$class"]
-            print(user_data)
+        print(type(user_data))
+        user_data = user_data["userData"]
+        del user_data["$class"]
+        print(user_data)
            
-            #decrpyt the user data with AES key
-            for key in user_data:
-                print("decrypting %s now"%key)
-                user_data[key] = aes_decrypt(user_data[key],AES_key)
+        #decrpyt the user data with AES key
+        for key in user_data:
+            print("decrypting %s now"%key)
+            user_data[key] = aes_decrypt(user_data[key],AES_key)
             
-            print(user_data)
-                
-            if(check_if_user_info_exists(user_data) == True):
-                resp = Response(json.dumps({"Error":"You have already registered with this company!"}))
-                resp.status_code = 409
-                return resp
-            else:    
-                #post the user data to the company database along with password and username
-                add_user_to_database(username,password,user_data)
-                return "Done"
-        else: 
-            resp = Response(json.dumps({"Error":"The user is disabled."}))
-            resp.status_code = 400
+        print(user_data)
+            
+        if(check_if_user_info_exists(user_data) == True):
+            resp = Response(json.dumps({"Error":"You have already registered with this company!"}))
+            resp.status_code = 409
             return resp
+        else:    
+            #post the user data to the company database along with password and username
+            add_user_to_database(username,password,user_data)
+            return "Done"
         
     else: #if fail to retrieve the user info
         resp = Response(json.dumps(json.loads(r.text)))
@@ -414,22 +455,11 @@ def login_org():
     
     username = decrypted["username"]
     password = decrypted["password"]
-    block_id = decrypted["block_id"]
     encrypted_merkle_raw = decrypted["merkle_raw"]
     
     print("username %s"%username)
     print("password %s"%password)
-    print("block_id %s"%block_id)
     print("merkle_raw %s"%encrypted_merkle_raw)
-    
-    #    #post request to kyc backend to retrieve user block of info
-#    r = requests.post("https://kyc-project.herokuapp.com/register_org", json = {"block_id":block_id})
-#    data_received = json.loads(r.text)
-#    can_access = data_received["access"]
-#    if not can_access:
-#        resp = Response(json.dumps({"Error":"This user is disabled"}))
-#        resp.status_code = 400
-#        return resp
     
     can_login = check_for_login(username,password,bytes(java_to_python_bytes(encrypted_merkle_raw)))
     

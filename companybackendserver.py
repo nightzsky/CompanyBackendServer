@@ -298,7 +298,6 @@ def get_request_database():
 #to view the company database, all the users info
 @app.route("/get_company_database",methods = ['GET'])
 @requires_auth
-@crossdomain(origin='*')
 def get_company_database():
     print("in get_company_database()")
     conn,cur,rows = select_db("*","COMPANY_DATABASE")

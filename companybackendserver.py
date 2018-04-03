@@ -23,9 +23,9 @@ def crossdomain(origin=None, methods=None, headers=None,
 
     if methods is not None:
         methods = ', '.join(sorted(x.upper() for x in methods))
-    if headers is not None and not isinstance(headers, list):
+    if headers is not None and not isinstance(headers, str):
         headers = ', '.join(x.upper() for x in headers)
-    if not isinstance(origin, list):
+    if not isinstance(origin, str):
         origin = ', '.join(origin)
     if isinstance(max_age, timedelta):
         max_age = max_age.total_seconds()
@@ -326,7 +326,6 @@ def refresh_request_database():
 
 #to view the request database with request id and corresponding public key stored
 @app.route("/get_request_database",methods = ['GET'])
-@crossdomain(origin='*') 
 @requires_auth
 def get_request_database():
     conn,cur,rows = select_db("*","REQUEST_DATABASE")
@@ -337,8 +336,8 @@ def get_request_database():
     return response
 
 #to view the company database, all the users info
-@app.route("/get_company_database",methods = ['GET'])
-@crossdomain(origin='*',methods=['GET'], headers='Access-Control-Allow-Origin') 
+@app.route("/get_company_database",methods = ['GET','OPTIONS'])
+@crossdomain(origin='*',methods=['GET','OPTIONS'], headers='Authorization') 
 @requires_auth
 def get_company_database():
     print("in get_company_database()")

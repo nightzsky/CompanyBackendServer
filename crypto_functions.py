@@ -133,5 +133,4 @@ def verify_signature(raw, signature, public_key):
         pkcs1_15.new(publicKey).verify(hash_object, signature)
         return True
     except Exception as e:
-        print(e.message)
         return False

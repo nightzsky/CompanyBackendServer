@@ -180,7 +180,7 @@ def check_for_login(username,password,encrypted_merkle_raw):
                     can_login = True
                     return can_login
     if (can_login == False):
-        print("Invalid username/password!")
+        print("Invalid username/password/token!")
     return can_login
     
 #update the request id and private key to the database

@@ -41,9 +41,11 @@ def requires_auth(f):
     def decorated(*args,**kwargs):
         auth = request.authorization
         if not auth:
+            print("not auth")
             return authenticate()
         
         elif not check_auth(auth.username, auth.password):
+            print("wrong auth")
             return authenticate()
         return f(*args, **kwargs)
     

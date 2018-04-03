@@ -464,6 +464,7 @@ def login_org():
     
     username = decrypted["username"]
     password = decrypted["password"]
+    block_id = decrypted["block_id"]
     encrypted_merkle_raw = decrypted["merkle_raw"]
     
     print("username %s"%username)

@@ -111,8 +111,9 @@ def requires_auth(f):
     return decorated
 
 ##
-    #connect_db(): Connect to the postgresql database. returns the connection object and its cursor
-    #select_db(): choose the database to connect to
+#   For database connection
+#   connect_db(): Connect to the postgresql database. returns the connection object and its cursor
+#   select_db(): choose the database to connect to
 ##
 def connect_db():
     conn = psycopg2.connect(os.environ['DATABASE_URL'], sslmode = 'require')
@@ -124,8 +125,14 @@ def select_db(column,database):
     cur.execute("SELECT %s FROM %s"%(column,database))
     rows = cur.fetchall()
     return conn,cur,rows
-
-#get the most updated database
+##
+#   These methods are for generating all the request id for all the user who made request to the company backend server.
+#   Each request id and its corresponding private key are stored in database in order to decrypt the corresponding request from the user.
+#   get_previous_request_id(): get the lastest request id from the database
+#   get_request_id(): generate the new request id for the user
+#   get_private_key(request_id): return the corresponding private key for that request id for decryption
+#   update_request_database(): update the request database after generating request id for the user
+##
 def get_previous_request_id():
     conn,cur,rows = select_db("COUNT","COUNTTABLE")
     count = rows[0][0]
@@ -133,7 +140,6 @@ def get_previous_request_id():
     
     return conn,cur,count
 
-#get request id
 def get_request_id():
     conn,cur,count = get_previous_request_id()
     count += 1
@@ -147,7 +153,17 @@ def get_request_id():
     
     return request_id
 
-#get private key for decryption
+def update_request_database(request_id,private_key):
+    conn,cur = connect_db()
+    
+    #update the request_database with request id and private key
+    cur.execute("INSERT INTO REQUEST_DATABASE (ID,PRIVATE_KEY) \
+                VALUES (%s,%s)",(request_id,private_key))
+    
+    print("Updated request id and private key")
+    conn.commit()
+    conn.close()
+
 def get_private_key(request_id):
     conn,cur,rows = select_db("*","REQUEST_DATABASE")
     private_key = ""
@@ -163,7 +179,13 @@ def get_private_key(request_id):
     
     return private_key
 
-#for register org and login org for username detection
+##
+#   These methods are for checking validity or existence of the user in company database.
+#   check_if_username_exists(): for register org and login org for username detection
+#   check_if_user_info_eixsits(): check if the user already register the company
+#   check_for_login(): check if the user can login by cross-checking the username,password and the status of his blockchain on database
+##
+
 def check_if_username_exists(username):
     conn,cur,rows = select_db("USERNAME","COMPANY_DATABASE")
     matching = False
@@ -185,7 +207,6 @@ def check_if_user_info_exists(user_info):
         print("You have registered for this company before.")
     return exist
 
-#check if the user exists on the database
 def check_for_login(username,password,encrypted_merkle_raw):
     conn,cur,rows = select_db("*","COMPANY_DATABASE")
     can_login = False
@@ -208,17 +229,7 @@ def check_for_login(username,password,encrypted_merkle_raw):
         print("Invalid username/password/token!")
     return can_login
     
-#update the request id and private key to the database
-def update_request_database(request_id,private_key):
-    conn,cur = connect_db()
-    
-    #update the request_database with request id and private key
-    cur.execute("INSERT INTO REQUEST_DATABASE (ID,PRIVATE_KEY) \
-                VALUES (%s,%s)",(request_id,private_key))
-    
-    print("Updated request id and private key")
-    conn.commit()
-    conn.close()
+
     
 #add the decrypted user info to the company database
 def add_user_to_database(username,password,user_info):
@@ -347,7 +358,6 @@ def refresh_request_database():
     cur.execute("UPDATE COUNTTABLE set COUNT = 0");
     conn.commit()
     conn.close()
-    
 
 #to view the request database with request id and corresponding public key stored
 @app.route("/get_request_database",methods = ['GET'])

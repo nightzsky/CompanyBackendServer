@@ -17,6 +17,23 @@ from functools import wraps,update_wrapper
 
 app = Flask(__name__)
 
+#retrieves token info from the database
+def get_token(block_id):
+    os.environ['DATABASE_URL'] =  "postgres://rsetfziuscbspv:336cd83a2bded0f724eeca0568dba256a9ebc740a6747a5f95b7b2010ce4f0f9@ec2-54-235-193-34.compute-1.amazonaws.com:5432/d9n9f48fulejkc"
+    conn = psycopg2.connect(os.environ['DATABASE_URL'], sslmode = 'require')
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM TOKEN_DATABASE")
+    rows = cur.fetchall()
+    private_key = ""
+    AES_key = ""
+    merkle_raw = ""
+    for row in rows:
+        if (row[0] == block_id):
+            private_key = row[1]
+            AES_key = row[2]
+            merkle_raw = row[3]
+    return private_key,AES_key,merkle_raw
+
 def crossdomain(origin=None, methods=None, headers=None,
                 max_age=21600, attach_to_all=True,
                 automatic_options=True):
@@ -59,6 +76,9 @@ def crossdomain(origin=None, methods=None, headers=None,
         return update_wrapper(wrapped_function, f)
     return decorator
 
+##
+  #These methods are for Authentication  
+##
 def check_auth(username, password):
     conn,cur,rows = select_db("*","COMPANY_LOGIN")
     for row in rows:
@@ -90,13 +110,15 @@ def requires_auth(f):
         return f(*args, **kwargs)
     return decorated
 
-#Connect to the postgresql database. returns the connection object and its cursor
+##
+    #connect_db(): Connect to the postgresql database. returns the connection object and its cursor
+    #select_db(): choose the database to connect to
+##
 def connect_db():
     conn = psycopg2.connect(os.environ['DATABASE_URL'], sslmode = 'require')
     cur = conn.cursor()
     return conn, cur
 
-#select database
 def select_db(column,database):
     conn,cur = connect_db()
     cur.execute("SELECT %s FROM %s"%(column,database))
@@ -173,12 +195,15 @@ def check_for_login(username,password,encrypted_merkle_raw):
                 user_public_key = row[2]["rsa_public_key"]
                 print(user_public_key)
                 print(row[2]["merkle_root"])
-                print(verify_signature(row[2]["merkle_root"],encrypted_merkle_raw,user_public_key))
-              #  can_login = False
-                if (verify_signature(row[2]["merkle_root"],encrypted_merkle_raw,user_public_key)==True):
-                    print(row[2]["merkle_root"])
+                if (row[2]["merkle_root"] == encrypted_merkle_raw):
                     can_login = True
                     return can_login
+              #  print(verify_signature(row[2]["merkle_root"],encrypted_merkle_raw,user_public_key))
+              
+              #  if (verify_signature(row[2]["merkle_root"],encrypted_merkle_raw,user_public_key)==True):
+              #      print(row[2]["merkle_root"])
+              #      can_login = True
+              #      return can_login
     if (can_login == False):
         print("Invalid username/password/token!")
     return can_login
@@ -452,7 +477,9 @@ def register_user():
     username = decrypted["username"]
     password = decrypted["password"]
     block_id = decrypted["block_id"]
-    AES_key = decrypted["AES_key"]
+    #AES_key = decrypted["AES_key"]
+    
+    private_key,AES_key,merkle_raw = get_token(block_id)
     
     if (isValidUsername(username) == False):
         resp = Response(json.dumps({"Error":"Username contains invalid characters"}))
@@ -487,7 +514,6 @@ def register_user():
             user_data = user_data["userData"]
             del user_data["$class"]
             print(user_data)
-        
            
             #decrpyt the user data with AES key
             for key in user_data:
@@ -531,16 +557,18 @@ def login_org():
     #decrypt the request received
     decrypted = decrypt_request(request_id,received_request)
     print(decrypted)
-        
     
     username = decrypted["username"]
     password = decrypted["password"]
     block_id = decrypted["block_id"]
-    encrypted_merkle_raw = decrypted["merkle_raw"]
+    #encrypted_merkle_raw = decrypted["merkle_raw"]
+    
+    private_key,AES_key,merkle_raw = get_token(block_id)
     
     print("username %s"%username)
     print("password %s"%password)
-    print("merkle_raw %s"%encrypted_merkle_raw)
+    #print("merkle_raw %s"%encrypted_merkle_raw)
+    print("merkle_raw %s"%merkle_raw)
         
     #post request to kyc backend to retrieve user block of info
     r = requests.post("https://kyc-project.herokuapp.com/register_org", json = {"block_id":block_id})
@@ -552,7 +580,8 @@ def login_org():
         return resp
     
     
-    can_login = check_for_login(username,password,bytes(java_to_python_bytes(encrypted_merkle_raw)))
+   # can_login = check_for_login(username,password,bytes(java_to_python_bytes(encrypted_merkle_raw)))
+    can_login = check_for_login(username,password,merkle_raw)
     
     if (can_login):
         resp = Response(json.dumps({"Message":"Welcome %s"%username}))

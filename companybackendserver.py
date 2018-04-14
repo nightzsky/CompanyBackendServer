@@ -17,22 +17,22 @@ from functools import wraps,update_wrapper
 
 app = Flask(__name__)
 
-#retrieves token info from the database
-def get_token(block_id):
-    os.environ['DATABASE_URL'] =  "postgres://rsetfziuscbspv:336cd83a2bded0f724eeca0568dba256a9ebc740a6747a5f95b7b2010ce4f0f9@ec2-54-235-193-34.compute-1.amazonaws.com:5432/d9n9f48fulejkc"
-    conn = psycopg2.connect(os.environ['DATABASE_URL'], sslmode = 'require')
-    cur = conn.cursor()
-    cur.execute("SELECT * FROM TOKEN_DATABASE")
-    rows = cur.fetchall()
-    private_key = ""
-    AES_key = ""
-    merkle_raw = ""
-    for row in rows:
-        if (row[0] == block_id):
-            private_key = row[1]
-            AES_key = row[2]
-            merkle_raw = row[3]
-    return private_key,AES_key,merkle_raw
+##retrieves token info from the database
+#def get_token(block_id):
+#    os.environ['DATABASE_URL'] =  "postgres://rsetfziuscbspv:336cd83a2bded0f724eeca0568dba256a9ebc740a6747a5f95b7b2010ce4f0f9@ec2-54-235-193-34.compute-1.amazonaws.com:5432/d9n9f48fulejkc"
+#    conn = psycopg2.connect(os.environ['DATABASE_URL'], sslmode = 'require')
+#    cur = conn.cursor()
+#    cur.execute("SELECT * FROM TOKEN_DATABASE")
+#    rows = cur.fetchall()
+#    private_key = ""
+#    AES_key = ""
+#    merkle_raw = ""
+#    for row in rows:
+#        if (row[0] == block_id):
+#            private_key = row[1]
+#            AES_key = row[2]
+#            merkle_raw = row[3]
+#    return private_key,AES_key,merkle_raw
 
 def crossdomain(origin=None, methods=None, headers=None,
                 max_age=21600, attach_to_all=True,
@@ -125,6 +125,8 @@ def select_db(column,database):
     cur.execute("SELECT %s FROM %s"%(column,database))
     rows = cur.fetchall()
     return conn,cur,rows
+
+
 ##
 #   These methods are for generating all the request id for all the user who made request to the company backend server.
 #   Each request id and its corresponding private key are stored in database in order to decrypt the corresponding request from the user.
@@ -133,6 +135,7 @@ def select_db(column,database):
 #   get_private_key(request_id): return the corresponding private key for that request id for decryption
 #   update_request_database(): update the request database after generating request id for the user
 ##
+    
 def get_previous_request_id():
     conn,cur,rows = select_db("COUNT","COUNTTABLE")
     count = rows[0][0]
@@ -156,7 +159,6 @@ def get_request_id():
 def update_request_database(request_id,private_key):
     conn,cur = connect_db()
     
-    #update the request_database with request id and private key
     cur.execute("INSERT INTO REQUEST_DATABASE (ID,PRIVATE_KEY) \
                 VALUES (%s,%s)",(request_id,private_key))
     
@@ -216,22 +218,27 @@ def check_for_login(username,password,encrypted_merkle_raw):
                 user_public_key = row[2]["rsa_public_key"]
                 print(user_public_key)
                 print(row[2]["merkle_root"])
-                if (row[2]["merkle_root"] == encrypted_merkle_raw):
+#                if (row[2]["merkle_root"] == encrypted_merkle_raw):
+#                    can_login = True
+#                    return can_login
+                print(verify_signature(row[2]["merkle_root"],encrypted_merkle_raw,user_public_key))
+              
+                if (verify_signature(row[2]["merkle_root"],encrypted_merkle_raw,user_public_key)==True):
+                    print(row[2]["merkle_root"])
                     can_login = True
                     return can_login
-              #  print(verify_signature(row[2]["merkle_root"],encrypted_merkle_raw,user_public_key))
-              
-              #  if (verify_signature(row[2]["merkle_root"],encrypted_merkle_raw,user_public_key)==True):
-              #      print(row[2]["merkle_root"])
-              #      can_login = True
-              #      return can_login
+                
     if (can_login == False):
         print("Invalid username/password/token!")
     return can_login
     
+##
+#   These methods updates and retrieves data from the company database
+#   add_user_to_database: Add a new register user info to the company database
+#   extract_user_info: Retrieve the user's information    
+#   del_user: delete user from the database
+##
 
-    
-#add the decrypted user info to the company database
 def add_user_to_database(username,password,user_info):
     conn,cur = connect_db()
     cur.execute("INSERT INTO COMPANY_DATABASE (USERNAME,PASSWORD,USER_INFO) \
@@ -239,7 +246,6 @@ def add_user_to_database(username,password,user_info):
     conn.commit()
     conn.close()
 
-#extract the user_info for respective user from database
 def extract_user_info(username):
     conn,cur,rows = select_db("*","COMPANY_DATABASE")
     user_info = ""
@@ -252,7 +258,6 @@ def extract_user_info(username):
     conn.close()
     return user_info
 
-#delete user from company_database
 def del_user(username):
     conn,cur = connect_db()
     print("checking for user " + str(username))
@@ -264,8 +269,11 @@ def del_user(username):
     else:
         conn.close()
         return "User does not exist, delete failed"
+
+##
+#   This method checks if the username exists in database before registration
+##        
         
-#check if valid username
 def isValidUsername(username):
     contains_weird_letter = False
     for letter in username:
@@ -343,7 +351,10 @@ def is_staff_logged_in():
     response.headers['Access-Control-Allow-Origin'] = '*'
     return response
 
-#refresh the request_database
+##
+#   This method refresh the request id database  
+##
+    
 def refresh_request_database():
     conn,cur = connect_db()
     #del the whole table
@@ -359,7 +370,12 @@ def refresh_request_database():
     conn.commit()
     conn.close()
 
-#to view the request database with request id and corresponding public key stored
+##
+#   These methods is for viewing the company database
+#   get_request_database: view the request id database with the corresponding public key stored
+#   get_company_database: view all the users who registered the company (company database)
+##
+
 @app.route("/get_request_database",methods = ['GET'])
 @requires_auth
 def get_request_database():
@@ -370,7 +386,6 @@ def get_request_database():
     response.headers['Access-Control-Allow-Origin'] = '*'
     return response
 
-#to view the company database, all the users info
 @app.route("/get_company_database",methods = ['GET','OPTIONS'])
 @crossdomain(origin='*',methods=['GET','OPTIONS'], headers='Authorization') 
 @requires_auth
@@ -401,10 +416,6 @@ def decrypt_request(request_id,json):
             decrypted[rsa_decrypt(ast.literal_eval(key),private_key)] = rsa_decrypt(ast.literal_eval(json[key]), private_key)
 
     return decrypted
-
-@app.route("/")
-def hello():
-    return "Hello"
 
 @app.route("/get_key",methods = ['GET'])
 def get_key():
@@ -457,6 +468,9 @@ def get_key():
 
     return jsonify(for_user)
 
+##
+#   This method add the new register user to the company database
+##
 @app.route("/register_user", methods = ['POST'])
 def register_user():
     received_request = request.json
@@ -487,9 +501,9 @@ def register_user():
     username = decrypted["username"]
     password = decrypted["password"]
     block_id = decrypted["block_id"]
-    #AES_key = decrypted["AES_key"]
+    AES_key = decrypted["AES_key"]
     
-    private_key,AES_key,merkle_raw = get_token(block_id)
+#    private_key,AES_key,merkle_raw = get_token(block_id)
     
     if (isValidUsername(username) == False):
         resp = Response(json.dumps({"Error":"Username contains invalid characters"}))
@@ -550,6 +564,9 @@ def register_user():
         resp.status_code = r.status_code
         return resp
 
+##
+#   This method for user who wants to login to the company website by checking their username and password
+##
 @app.route("/login_org",methods = ['POST'])
 def login_org():
     received_request = request.json
@@ -571,14 +588,14 @@ def login_org():
     username = decrypted["username"]
     password = decrypted["password"]
     block_id = decrypted["block_id"]
-    #encrypted_merkle_raw = decrypted["merkle_raw"]
+    encrypted_merkle_raw = decrypted["merkle_raw"]
     
-    private_key,AES_key,merkle_raw = get_token(block_id)
+#    private_key,AES_key,merkle_raw = get_token(block_id)
     
     print("username %s"%username)
     print("password %s"%password)
-    #print("merkle_raw %s"%encrypted_merkle_raw)
-    print("merkle_raw %s"%merkle_raw)
+    print("merkle_raw %s"%encrypted_merkle_raw)
+#    print("merkle_raw %s"%merkle_raw)
         
     #post request to kyc backend to retrieve user block of info
     r = requests.post("https://kyc-project.herokuapp.com/register_org", json = {"block_id":block_id})
@@ -590,8 +607,8 @@ def login_org():
         return resp
     
     
-   # can_login = check_for_login(username,password,bytes(java_to_python_bytes(encrypted_merkle_raw)))
-    can_login = check_for_login(username,password,merkle_raw)
+    can_login = check_for_login(username,password,bytes(java_to_python_bytes(encrypted_merkle_raw)))
+#    can_login = check_for_login(username,password,merkle_raw)
     
     if (can_login):
         resp = Response(json.dumps({"Message":"Welcome %s"%username}))
@@ -603,12 +620,5 @@ def login_org():
     
     return resp
     
-@app.route("/get_database_size", methods = ['GET'])
-def get_database_size():
-    conn,cur,num_requests = get_previous_request_id()
-    response = jsonify({"Total requests" : num_request})
-    
-    return response
-
 if __name__ == "__main__":
     app.run()

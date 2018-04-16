@@ -17,23 +17,6 @@ from functools import wraps,update_wrapper
 
 app = Flask(__name__)
 
-##retrieves token info from the database
-#def get_token(block_id):
-#    os.environ['DATABASE_URL'] =  "postgres://rsetfziuscbspv:336cd83a2bded0f724eeca0568dba256a9ebc740a6747a5f95b7b2010ce4f0f9@ec2-54-235-193-34.compute-1.amazonaws.com:5432/d9n9f48fulejkc"
-#    conn = psycopg2.connect(os.environ['DATABASE_URL'], sslmode = 'require')
-#    cur = conn.cursor()
-#    cur.execute("SELECT * FROM TOKEN_DATABASE")
-#    rows = cur.fetchall()
-#    private_key = ""
-#    AES_key = ""
-#    merkle_raw = ""
-#    for row in rows:
-#        if (row[0] == block_id):
-#            private_key = row[1]
-#            AES_key = row[2]
-#            merkle_raw = row[3]
-#    return private_key,AES_key,merkle_raw
-
 def crossdomain(origin=None, methods=None, headers=None,
                 max_age=21600, attach_to_all=True,
                 automatic_options=True):
@@ -171,10 +154,8 @@ def get_private_key(request_id):
     private_key = ""
     for row in rows:
         if (row[0] == (int)(request_id)):
-            print(row[1])
             private_key = row[1]
     if(private_key == ""):
-        print("Invalid Request ID!")
         return 'Invalid Request ID'
         
     conn.close()
@@ -215,16 +196,8 @@ def check_for_login(username,password,encrypted_merkle_raw):
     for row in rows:
         if (row[0].lower() == username.lower()):
             if (row[1]==password):
-                user_public_key = row[2]["rsa_public_key"]
-                print(user_public_key)
-                print(row[2]["merkle_root"])
-#                if (row[2]["merkle_root"] == encrypted_merkle_raw):
-#                    can_login = True
-#                    return can_login
-                print(verify_signature(row[2]["merkle_root"],encrypted_merkle_raw,user_public_key))
-              
+                user_public_key = row[2]["rsa_public_key"]            
                 if (verify_signature(row[2]["merkle_root"],encrypted_merkle_raw,user_public_key)==True):
-                    print(row[2]["merkle_root"])
                     can_login = True
                     return can_login
                 
@@ -252,7 +225,6 @@ def extract_user_info(username):
     for row in rows:
         if (row[0] == username):
             user_info = row[2]
-            print(user_info)
     if (user_info == ""):
         print("User does not exist.")
     conn.close()
@@ -474,7 +446,6 @@ def get_key():
 @app.route("/register_user", methods = ['POST'])
 def register_user():
     received_request = request.json
-    print(received_request)
     
     request_id = received_request["request_id"] 
     print("received request_id")
@@ -484,8 +455,6 @@ def register_user():
     if ("request_id" in received_request):
         del received_request["request_id"]
     
-    print(received_request)
-    
     #decrypt the request received
     decrypted = decrypt_request(request_id,received_request)
 
@@ -494,8 +463,6 @@ def register_user():
         resp = Response(json.dumps({"Message":"Invalid request ID"}))
         resp.status_code = 400
         return resp
-
-    print(decrypted)
     
     #decrypt the user request using private key
     username = decrypted["username"]
@@ -515,12 +482,6 @@ def register_user():
         resp = Response(json.dumps({"Error":"Username already exists!"}))
         resp.status_code = 409 #conflict with the current state of resources
         return resp
-    
-    print(username)
-    print(password)  
-    print("Block ID: %s"%block_id)
-    print("AES_key: %s"%AES_key)
-    print(type(AES_key))
         
     #post request to kyc backend to retrieve user block of info
     r = requests.post("https://kyc-project.herokuapp.com/register_org", json = {"block_id":block_id})
@@ -530,21 +491,17 @@ def register_user():
     if (r.status_code == 200): #if success in retrieving user info from kyc
         # received ENCRYPTED user data from kyc backend
         user_data = json.loads(r.text)
-        print(type(user_data))
         can_access = user_data["access"]
         # check if the user got report lost of token
         if (can_access):      
-            print(type(user_data))
             user_data = user_data["userData"]
             del user_data["$class"]
             print(user_data)
            
             #decrpyt the user data with AES key
             for key in user_data:
-                print("decrypting %s now"%key)
                 user_data[key] = aes_decrypt(user_data[key],AES_key)
                 
-            print(user_data)
                 
             if(check_if_user_info_exists(user_data) == True):
                 resp = Response(json.dumps({"Error":"You have already registered with this company!"}))
@@ -570,7 +527,6 @@ def register_user():
 @app.route("/login_org",methods = ['POST'])
 def login_org():
     received_request = request.json
-    print(received_request)
     
     request_id = received_request["request_id"] 
     print("received request_id")
@@ -578,8 +534,6 @@ def login_org():
     
     if ("request_id" in received_request):
         del received_request["request_id"]
-    
-    print(received_request)
     
     #decrypt the request received
     decrypted = decrypt_request(request_id,received_request)
@@ -589,18 +543,12 @@ def login_org():
     password = decrypted["password"]
     block_id = decrypted["block_id"]
     encrypted_merkle_raw = decrypted["merkle_raw"]
-    
-#    private_key,AES_key,merkle_raw = get_token(block_id)
-    
-    print("username %s"%username)
-    print("password %s"%password)
-    print("merkle_raw %s"%encrypted_merkle_raw)
-#    print("merkle_raw %s"%merkle_raw)
         
     #post request to kyc backend to retrieve user block of info
     r = requests.post("https://kyc-project.herokuapp.com/register_org", json = {"block_id":block_id})
     data_received = json.loads(r.text)
     can_access = data_received["access"]
+    
     if not can_access:
         resp = Response(json.dumps({"Error":"This user is disabled"}))
         resp.status_code = 400
@@ -608,7 +556,6 @@ def login_org():
     
     
     can_login = check_for_login(username,password,bytes(java_to_python_bytes(encrypted_merkle_raw)))
-#    can_login = check_for_login(username,password,merkle_raw)
     
     if (can_login):
         resp = Response(json.dumps({"Message":"Welcome %s"%username}))

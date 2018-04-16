@@ -192,7 +192,7 @@ def check_if_username_exists(username):
     conn,cur,rows = select_db("USERNAME","COMPANY_DATABASE")
     matching = False
     for row in rows:
-        if (row[0] == username):
+        if (row[0].lower() == username.lower()):
             matching = True
             
     if (matching == True):
@@ -213,7 +213,7 @@ def check_for_login(username,password,encrypted_merkle_raw):
     conn,cur,rows = select_db("*","COMPANY_DATABASE")
     can_login = False
     for row in rows:
-        if (row[0] == username):
+        if (row[0].lower() == username.lower()):
             if (row[1]==password):
                 user_public_key = row[2]["rsa_public_key"]
                 print(user_public_key)

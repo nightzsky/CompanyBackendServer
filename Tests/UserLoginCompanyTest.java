@@ -1,6 +1,5 @@
 import org.json.JSONObject;
 import org.junit.Test;
-import org.seleniumhq.jetty9.server.Authentication;
 
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
@@ -83,11 +82,11 @@ public class UserLoginCompanyTest {
     }
     /**
      * Tests successful login with correct username and password
-     * The account use is an account that was created beforehand
+     * The account used is an account that was created beforehand
      */
     @Test
     public void testCorrectLogin(){
-        int responseCode = UserLoginCompany.login("InfinityWar",
+        int responseCode = UserLoginCompany.login("infinityWar",
                 "byebye",
                 "4fb455fc94279ec6b70301bc9108920c3c221430475de5fad15b854673f9d786",
                 "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCwPxRNM32MW2j5\ng/HlGSnx2oJ6cgNkNlMZ7Ad3mdtkux8SoaLrV9c54ru7JcNx+M81mBvtDP4wlWzD\n0gfT62ATsAcs0HwM/Qn7xQw6ra/tkK7Kuj1R37VWT+zyFDwFV5Z6KwFRn7xBFJBT\niL1ikBi/LAnq55AmslhToFBwfh68UCJQ6fl3oaQxkIV30nC/au91NhBphw1WQXiS\nynuYRlz4XNCV1nbzOwRpdMna+sDctjQDw721YxrQ/exsugyRfMF2aOsVHQsCRk+0\ndZc7Cobz8LGxrs1ubdUO4cOFl4L4vo53BmxzE5k1UiE9jtSEjQb2LbhE7Wb/hsN5\n33h3NnUBAgMBAAECggEAAOm8Hi5sNPppWARgafLMtoXapePBRKIoMXlVPmntD7q9\nNm49EpVOP06zVQjTAioqMJMBETgFXS4NXNsttdfkddxmPH3AWGPZSN4u6xL+uSw0\nDrso1p24MwMuqCw7jYYALL4EPpGDZ+RfYzCFTbRjKY6O1vBC/Td0mhL9rvAhMp3E\n5sFZ4SnvmgRmGhKOkGgFF93w6M5y2e3vC+4xhJZ0jITNQO8bUpP5Sz7fTJiAtLlO\nDrlVlPZDAJ+zLojswx3/jr5v1bK1T1VCwnUbhtGxxSrgimSKjpSsBzZKWlOxk3+I\nm+aBY6zyJdi7aehyp4r+h6W82O1ED4hqJc9nJGoUgQKBgQC3IvZkb2KA+hSnPelJ\n1wHMUJN4ze+vw8HBopXELbQnB5QcJVp8xyz5kUuVKwrQFkZUavHc3VOMYbDuY8lS\nv8ORwdXoWkgIAPWzzffvg6eBwEuzz2hc3dU8dfDHoRC9vAvLrdxJJZ/mVdvWqXKV\na0XmvQnZUiSPwzbMr6tHGXxggQKBgQD2XlTYUABOOd6LeZ5mVtGtW5hB5bkegI7r\nW4uXxsWYD5yVOntZC/q4+nM+dHWHwiVpoMKFGA80yooOdtq9r/LwOCg7bw+Dkmmy\n9qrQmfLF33PwxgOInpvTGs6dX5TSlSNEPxQcgmZS934/fgkZ5JnzI7ap7hwzRHXc\nAV6B8B/UgQKBgGcdu4hfoyImLZzhYkreUjfdoruhkPTxj1ZdGmDkrwxO2xlh+upJ\nJ8y5/8nU+3ihIiaENPz8bf+cPghsjT4XlaGrd6slsms3RyFfttvY0Gdhg/6RqRyp\nF1i8u79btFZw3F9p3KAfHEKQU4Ex1b/GMAy0oigIdWexLljgDNuywPKBAoGAc86H\np16DpkHBgGJcuNJaoViKy38Gc3YOuEdB6MhAnWfJPMROst7UrhrcDSGFFZmHKI2u\nog1bKH+EQaRQ0hVg5tYe40EjU7+A++TDCmczHRwaTbVmd9PGf4b8VDFXrVz5RN05\nwOTy4FECASpncMpqK0ZAWMRacSbfF9l06TNMYwECgYEAruQeVz0/zZO4m4ngvG/B\nb8Ua68uJHwuWqQgteKHt6+FY+ppDmAHDLXYkHL3SrJFDV0Y4zNiSBX2SpCErj8yy\ntOKhSPckqSZON6fQuf9tDyLUEMT2Q1THMymi6Mra833W5zpeK6BQPAOERMMrsqNl\n5j29LX39eqNdFkvPkX22U+Q=\n-----END PRIVATE KEY-----",
@@ -144,6 +143,29 @@ public class UserLoginCompanyTest {
         }
         finally{
             reactivateToken("8752337d9dfa5bff1e82deba44e7156e10ec5144c85682aae70c30d41aaa0125");
+        }
+    }
+
+    /**
+     * Robustness test which attempts login with random inputs
+     */
+    @Test
+    public void loginRobustnessTest() {
+        for (int i = 0; i < 100; i++) {
+            int responseCode = 0;
+            try {
+                responseCode = UserLoginCompany.login(RandomInput.randomString(),
+                        RandomInput.randomString(),
+                        RandomInput.randomString(),
+                        RandomInput.randomString(),
+                        RandomInput.randomString());
+            } catch (Exception e) {
+
+            } finally {
+                if (responseCode != 0) {
+                    assertFalse(responseCode == 200);
+                }
+            }
         }
     }
 }

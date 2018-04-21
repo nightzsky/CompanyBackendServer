@@ -6,6 +6,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.Random;
 
 import static org.junit.Assert.*;
 
@@ -13,6 +14,7 @@ import static org.junit.Assert.*;
  * Tests the registration of users with companies
  * Users must already be registered with blocktrace
  * Users are deleted immediately after they are added
+ * Users used here to test have been previously registered with blocktrace beforehand
  */
 public class UserRegisterCompanyTest {
     //function which revokes or reactivates the token of a specified user, used for tests later
@@ -192,6 +194,27 @@ public class UserRegisterCompanyTest {
         }
         finally{
             reactivateToken("04d2a86fdff20c15dd4e16435ee643b194ea6e928ef4fe4695f1464977142646");
+        }
+    }
+
+    //Robustness test which attempts user registration with lots of random inputs
+    @Test
+    public void testRobustnessRegistration(){
+        for (int i = 0; i < 100; i++) {
+            int responseCode = 0;
+            String username = "";
+            try {
+                username = RandomInput.randomString();
+                responseCode = UserRegisterCompany.registerCompany(username, RandomInput.randomString(), RandomInput.randomString(), RandomInput.randomString(), RandomInput.randomString(), RandomInput.randomString());
+            } catch (Exception e) {
+
+            }
+            try {
+                if (responseCode != 0)
+                    assertFalse(responseCode == 200);
+            } catch (Exception e) {
+                UserRegisterCompany.deleteUser(username);
+            }
         }
     }
 }
